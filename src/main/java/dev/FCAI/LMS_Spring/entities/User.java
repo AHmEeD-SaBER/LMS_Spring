@@ -31,7 +31,6 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "course_id")
     )
     private List<Course> enrolledCourses = new ArrayList<>();
-
     public Long getId() {
         return id;
     }

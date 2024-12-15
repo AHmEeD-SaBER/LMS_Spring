@@ -1,31 +1,31 @@
 package dev.FCAI.LMS_Spring.service;
 
 import dev.FCAI.LMS_Spring.entities.User;
-import dev.FCAI.LMS_Spring.event.UserRegistrationEvent;
 import dev.FCAI.LMS_Spring.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-
-    private final UserRepository userRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, ApplicationEventPublisher eventPublisher) {
-        this.userRepository = userRepository;
-        this.eventPublisher = eventPublisher;
+    private PasswordEncoder passwordEncoder;
+
+    public User createUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
     }
 
-    public User registerUser(User user) {
-        // Save user to the database
-        User savedUser = userRepository.save(user);
+    public User updateUser(Long id, User updatedUser) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setUsername(updatedUser.getUsername());
+        return userRepository.save(user);
+    }
 
-        // Trigger a user registration event to notify listeners
-        eventPublisher.publishEvent(new UserRegistrationEvent(this, savedUser));
-
-        return savedUser;
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 }
