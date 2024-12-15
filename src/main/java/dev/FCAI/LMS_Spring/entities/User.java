@@ -1,15 +1,10 @@
 package dev.FCAI.LMS_Spring.entities;
 
-import dev.FCAI.LMS_Spring.entities.UserRole;
 import jakarta.persistence.*;
-import lombok.*;
-import java.time.LocalDateTime;
-import java.util.Set;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -17,33 +12,71 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
-
-    @Column(unique = true, nullable = false)
-    private String email;
 
     @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private UserRole role;
+    private Role role;
 
-    private String firstName;
-    private String lastName;
-    private String profilePicture;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
-    private Set<Notification> notifications;
+    @ManyToMany
+    @JoinTable(
+            name = "enrolled_courses",
+            joinColumns = @JoinColumn(name = "student_id"),
+            inverseJoinColumns = @JoinColumn(name = "course_id")
+    )
+    private List<Course> enrolledCourses = new ArrayList<>();
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    public Long getId() {
+        return id;
+    }
 
-    private LocalDateTime lastLogin;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public List<Notification> getNotifications() {
+        return notifications;
+    }
+
+    public void setNotifications(List<Notification> notifications) {
+        this.notifications = notifications;
+    }
+
+    public List<Course> getEnrolledCourses() {
+        return enrolledCourses;
+    }
+
+    public void setEnrolledCourses(List<Course> enrolledCourses) {
+        this.enrolledCourses = enrolledCourses;
     }
 }
-

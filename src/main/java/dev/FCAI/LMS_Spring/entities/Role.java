@@ -1,6 +1,6 @@
 package dev.FCAI.LMS_Spring.entities;
 
-public enum UserRole {
+public enum Role {
     ADMIN,
     INSTRUCTOR,
     STUDENT
