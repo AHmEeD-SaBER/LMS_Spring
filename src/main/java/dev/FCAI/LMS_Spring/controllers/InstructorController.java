@@ -1,32 +1,43 @@
 package dev.FCAI.LMS_Spring.controllers;
 
+import dev.FCAI.LMS_Spring.entities.Assessment;
 import dev.FCAI.LMS_Spring.entities.Course;
-import dev.FCAI.LMS_Spring.service.CourseService;
+import dev.FCAI.LMS_Spring.service.InstructorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/instructor")
-@PreAuthorize("hasRole('INSTRUCTOR')")
+@RequestMapping("/api/instructor")
 public class InstructorController {
     @Autowired
-    private CourseService courseService;
+    private InstructorService instructorService;
 
-    @PostMapping("/courses")
+    @PostMapping("/course")
     public ResponseEntity<Course> createCourse(@RequestBody Course course) {
-        return ResponseEntity.ok(courseService.createCourse(course));
+        return ResponseEntity.ok(instructorService.createCourse(course));
     }
 
-    @PutMapping("/courses/{id}")
-    public ResponseEntity<Course> updateCourse(@PathVariable Long id, @RequestBody Course course) {
-        return ResponseEntity.ok(courseService.updateCourse(id, course));
+    @DeleteMapping("/course/{courseId}")
+    public ResponseEntity<Void> deleteCourse(@PathVariable Long courseId) {
+        instructorService.deleteCourse(courseId);
+        return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/courses/{id}")
-    public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
-        courseService.deleteCourse(id);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/course")
+    public ResponseEntity<Course> updateCourse(@RequestBody Course course) {
+        return ResponseEntity.ok(instructorService.updateCourse(course));
+    }
+
+    @PostMapping("/assessment")
+    public ResponseEntity<Assessment> createAssessment(@RequestBody Assessment assessment) {
+        return ResponseEntity.ok(instructorService.createAssessment(assessment));
+    }
+
+    @GetMapping("/assessments/{courseId}")
+    public ResponseEntity<List<Assessment>> viewAllAssessmentsGrades(@PathVariable Long courseId) {
+        return ResponseEntity.ok(instructorService.viewAllAssessmentsGrades(courseId));
     }
 }

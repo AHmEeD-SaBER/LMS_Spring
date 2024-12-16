@@ -1,33 +1,30 @@
 package dev.FCAI.LMS_Spring.controllers;
 
 import dev.FCAI.LMS_Spring.entities.User;
-import dev.FCAI.LMS_Spring.service.UserService;
+import dev.FCAI.LMS_Spring.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin")
-@PreAuthorize("hasRole('ADMIN')")
+@RequestMapping("/api/admin")
 public class AdminController {
     @Autowired
-    private UserService userService;
+    private AdminService adminService;
 
-    @PostMapping("/users")
+    @PostMapping("/user")
     public ResponseEntity<User> createUser(@RequestBody User user) {
-        return ResponseEntity.ok(userService.createUser(user));
+        return ResponseEntity.ok(adminService.createUser(user));
     }
 
-    @PutMapping("/users/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        return ResponseEntity.ok(userService.updateUser(id, user));
+    @PostMapping("/user/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+        adminService.deleteUser(userId);
+        return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/user")
+    public ResponseEntity<User> updateUser(@RequestBody User user) {
+        return ResponseEntity.ok(adminService.updateUser(user));
     }
 }
-
