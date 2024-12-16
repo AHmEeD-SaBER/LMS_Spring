@@ -1,0 +1,60 @@
+CREATE TABLE users (
+    id bigint primary key generated always as identity,
+    username text unique not null,
+    password text not null,
+    email text not null,
+    first_name text not null,
+    last_name text not null,
+    user_type text
+);
+
+CREATE TABLE courses (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    title TEXT NOT NULL,
+    description TEXT,
+    instructor_id BIGINT,
+    FOREIGN KEY (instructor_id) REFERENCES instructors(id)
+);
+
+CREATE TABLE notifications (
+    id bigint primary key generated always as identity,
+    message text not null,
+    created_at timestamp with time zone not null,
+    is_read boolean not null
+);
+
+CREATE TABLE assessments (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    title TEXT NOT NULL,
+    course_id BIGINT,
+    student_id BIGINT,
+    grade DOUBLE PRECISION,
+    assessment_type TEXT NOT NULL,
+    submission_path TEXT NOT NULL,
+    total_questions INTEGER,
+    passing_score INTEGER,
+    FOREIGN KEY (course_id) REFERENCES courses(id),
+    FOREIGN KEY (student_id) REFERENCES students(id)
+);
+CREATE TABLE student_courses (
+    student_id BIGINT,
+    course_id BIGINT,
+    PRIMARY KEY (student_id, course_id),
+    FOREIGN KEY (student_id) REFERENCES users(id),
+    FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+CREATE TABLE student_notifications (
+    student_id BIGINT,
+    notification_id BIGINT,
+    PRIMARY KEY (student_id, notification_id),
+    FOREIGN KEY (student_id) REFERENCES users(id),
+    FOREIGN KEY (notification_id) REFERENCES notifications(id)
+);
+
+CREATE TABLE lessons (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    title TEXT NOT NULL,
+    otp_code TEXT NOT NULL,
+    course_id BIGINT,
+    FOREIGN KEY (course_id) REFERENCES courses(id)
+);
