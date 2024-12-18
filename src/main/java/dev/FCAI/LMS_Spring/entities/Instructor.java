@@ -17,9 +17,5 @@ public class Instructor extends User {
     @OneToMany(mappedBy = "instructor")
     private List<Course> createdCourses;
 
-    @Override
-    public Set<String> getRoles() {
-        return Set.of("ROLE_INSTRUCTOR");
-    }
 
 }

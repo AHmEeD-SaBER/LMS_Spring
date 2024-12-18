@@ -59,4 +59,11 @@ public class InstructorService {
         Optional<Course> courseOptional = courseRepository.findById(courseId);
         return courseOptional.map(Course::getAssessments).orElse(List.of());
     }
+
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    public List<Course> viewAllCourses() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Instructor instructor = instructorRepository.findByUsername(auth.getName());
+        return instructor.getCreatedCourses();
+    }
 }

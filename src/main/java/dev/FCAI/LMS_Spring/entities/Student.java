@@ -31,9 +31,5 @@ public class Student extends User {
     @OneToMany(mappedBy = "student")
     private List<Assessment> submittedAssessments;
 
-    @Override
-    public Set<String> getRoles() {
-        return Set.of("ROLE_STUDENT");
-    }
 
 }

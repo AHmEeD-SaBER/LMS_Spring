@@ -33,6 +33,8 @@ public abstract class User {
 
     @Column(nullable = false)
     private String lastName;
-    public abstract Set<String> getRoles();
+
+    @Column(nullable = false)
+    private String role;
 }
 
