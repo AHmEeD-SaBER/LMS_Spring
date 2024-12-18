@@ -14,7 +14,7 @@ import java.util.Set;
 @Entity
 @DiscriminatorValue("ADMIN")
 public class Admin extends User {
-    @OneToMany(mappedBy = "admin")
+    @OneToMany(mappedBy = "admin", orphanRemoval = true)
     @JsonManagedReference
     private List<User> users = new java.util.ArrayList<>();
 }

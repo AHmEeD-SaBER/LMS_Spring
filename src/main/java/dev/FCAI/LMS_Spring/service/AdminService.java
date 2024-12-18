@@ -1,9 +1,12 @@
 package dev.FCAI.LMS_Spring.service;
 
 import dev.FCAI.LMS_Spring.entities.Admin;
+import dev.FCAI.LMS_Spring.entities.Instructor;
 import dev.FCAI.LMS_Spring.entities.Student;
 import dev.FCAI.LMS_Spring.entities.User;
 import dev.FCAI.LMS_Spring.repository.AdminRepository;
+import dev.FCAI.LMS_Spring.repository.InstructorRepository;
+import dev.FCAI.LMS_Spring.repository.StudentRepository;
 import dev.FCAI.LMS_Spring.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,43 +20,57 @@ public class AdminService {
     private UserRepository userRepository;
 
     @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private InstructorRepository instructorRepository;
+
+    @Autowired
     private AdminRepository adminRepository;
 
     @Transactional
     public User createUser(User user) {
-        // If the user is a Student, we need to associate it with an Admin
-        if (user instanceof Student) {
-            Student student = (Student) user;
-
-            // Retrieve the Admin associated with this Student (you can adjust this logic based on your needs)
-            Admin admin = student.getAdmin();  // Assuming you pass the admin directly in the request (through adminId)
-            if (admin != null) {
-                // Ensure the admin exists in the DB
-                Admin existingAdmin = adminRepository.findById(admin.getId())
-                        .orElseThrow(() -> new RuntimeException("Admin not found"));
-
-                // Set the admin to the student
-                student.setAdmin(existingAdmin);
-            } else {
-                throw new RuntimeException("Admin must be provided for the student");
-            }
+        if (user == null) {
+            throw new IllegalArgumentException("User object cannot be null.");
         }
 
-        // Save the user, which could be a Student, Admin, or other types of User
-        return userRepository.save(user);
+//        if (user.getRole() == null || user.getRole().isEmpty()) {
+//            throw new IllegalArgumentException("Role is required and cannot be null or empty.");
+//        }
+
+        System.out.println("Creating user: Role=" + user.getRole()); // Debug log
+
+        if (user instanceof Student student) {
+            return studentRepository.save(student);
+        } else if (user instanceof Instructor instructor) {
+            return instructorRepository.save(instructor);
+        } else if (user instanceof Admin admin) {
+            return adminRepository.save(admin);
+        }
+
+        throw new RuntimeException("Invalid user type.");
     }
 
     @Transactional
     public void deleteUser(Long userId) {
         userRepository.deleteById(userId);
+        studentRepository.deleteById(userId);
+        instructorRepository.deleteById(userId);
     }
 
     @Transactional
     public User updateUser(User user) {
+        if (user instanceof Student student) {
+            return studentRepository.save(student);
+        } else if (user instanceof Instructor instructor) {
+            return instructorRepository.save(instructor);
+        }
         return userRepository.save(user);
     }
-//
-//    public List<User> findAllusers(){
-//
-//    }
+
+    public List<User> findAllUsers(Long adminId) {
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+        return admin.getUsers();
+    }
 }

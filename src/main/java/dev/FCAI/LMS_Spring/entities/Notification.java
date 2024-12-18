@@ -26,6 +26,6 @@ public class Notification {
     private boolean isRead;
 
     @ManyToMany(mappedBy = "notifications")
-    private List<Student> students;
+    private List<Student> students = new java.util.ArrayList<>();
 
 }

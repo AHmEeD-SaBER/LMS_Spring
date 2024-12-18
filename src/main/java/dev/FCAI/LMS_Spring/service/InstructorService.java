@@ -24,23 +24,35 @@ public class InstructorService {
     @Autowired
     private AssessmentRepository assessmentRepository;
 
-//    @Transactional
-//    public Course createCourse(Course course) {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        Instructor instructor = instructorRepository.findByUsername(auth.getName());
-//        course.setInstructor(instructor);
-//        return courseRepository.save(course);
-//    }
+    @Transactional
+    public Course createCourse(Course course, Long instructorId) {
+        Instructor instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new RuntimeException("Instructor not found"));
+        if(instructor.getCreatedCourses().contains(course)) return course;
+        instructor.getCreatedCourses().add(course);
+        instructorRepository.save(instructor);
+        course.setInstructor(instructor);
+        return courseRepository.save(course);
+    }
 
 
     @Transactional
-    public void deleteCourse(Long courseId) {
-        courseRepository.deleteById(courseId);
+    public void deleteCourse(Long courseId, Long instructorId) {
+        if(courseRepository.findById(courseId).isEmpty()) return;
+        Instructor instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new RuntimeException("Instructor not found"));
+        if(instructor.getCreatedCourses().contains(courseRepository.findById(courseId).get())) {
+            courseRepository.deleteById(courseId);
+        }
+        else throw new RuntimeException("Course not found");
     }
 
     @Transactional
-    public Course updateCourse(Course course) {
-        return courseRepository.save(course);
+    public Course updateCourse(Course course, Long instructorId) {
+        Instructor instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new RuntimeException("Instructor not found"));
+        if(courseRepository.findById(course.getId()).isEmpty()) throw new RuntimeException("Course not found");
+        if(instructor.getCreatedCourses().contains(course)) {
+            return courseRepository.save(course);
+        }
+        else throw new RuntimeException("Course not found");
     }
 
     @Transactional
@@ -52,9 +64,8 @@ public class InstructorService {
         Optional<Course> courseOptional = courseRepository.findById(courseId);
         return courseOptional.map(Course::getAssessments).orElse(List.of());
     }
-//    public List<Course> viewAllCourses() {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        Instructor instructor = instructorRepository.findByUsername(auth.getName());
-//        return instructor.getCreatedCourses();
-//    }
+    public List<Course> viewAllCourses(Long instructorId) {
+        Instructor instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new RuntimeException("Instructor not found"));
+        return instructor.getCreatedCourses();
+    }
 }

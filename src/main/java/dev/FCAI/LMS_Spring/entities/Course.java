@@ -1,8 +1,10 @@
 package dev.FCAI.LMS_Spring.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.action.internal.OrphanRemovalAction;
 
 import java.util.List;
 
@@ -20,17 +22,18 @@ public class Course {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "instructor_id")
     private Instructor instructor;
 
-    @ManyToMany(mappedBy = "enrolledCourses")
-    private List<Student> enrolledStudents;
+    @ManyToMany(mappedBy = "enrolledCourses", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JsonBackReference
+    private List<Student> enrolledStudents = new java.util.ArrayList<>();
 
-    @OneToMany(mappedBy = "course")
-    private List<Lesson> lessons;
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<Lesson> lessons = new java.util.ArrayList<>();
 
-    @OneToMany(mappedBy = "course")
-    private List<Assessment> assessments;
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<Assessment> assessments = new java.util.ArrayList<>();
 
 }

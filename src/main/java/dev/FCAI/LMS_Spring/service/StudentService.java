@@ -20,48 +20,40 @@ public class StudentService {
     @Autowired
     private NotificationRepository notificationRepository;
 
-//    public List<Course> getEnrolledCourses() {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        Student student = studentRepository.findByUsername(auth.getName());
-//        return student.getEnrolledCourses();
-//    }
+    public List<Course> getEnrolledCourses(Long studentId) {
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        return student.getEnrolledCourses();
+    }
 
-//    @Transactional
-//    public boolean enrollInCourse(Long courseId) {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        Student student = studentRepository.findByUsername(auth.getName());
-//
-//        Optional<Course> courseOptional = courseRepository.findById(courseId);
-//        if (courseOptional.isPresent()) {
-//            Course course = courseOptional.get();
-//            student.getEnrolledCourses().add(course);
-//            studentRepository.save(student);
-//
-//            // Create enrollment notification
-//            Notification notification = new Notification();
-//            notification.setMessage("Successfully enrolled in course: " + course.getTitle());
-//            notification.setCreatedAt(LocalDateTime.now());
-//            notification.setRead(false);
-//            notification.getStudents().add(student);
-//            notificationRepository.save(notification);
-//
-//            return true;
-//        }
-//        return false;
-//    }
+    @Transactional
+    public boolean enrollInCourse(Long courseId, Long studentId) {
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Optional<Course> courseOptional = courseRepository.findById(courseId);
+        if (courseOptional.isPresent()) {
+            Course course = courseOptional.get();
+            student.getEnrolledCourses().add(course);
+            studentRepository.save(student);
+            Notification notification = new Notification();
+            notification.setMessage("Successfully enrolled in course: " + course.getTitle());
+            notification.setCreatedAt(LocalDateTime.now());
+            notification.setRead(false);
+            notification.getStudents().add(student);
+            notificationRepository.save(notification);
+            return true;
+        }
+        return false;
+    }
 
 
-//    public List<Assessment> getSubmittedAssessmentGrades() {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        Student student = studentRepository.findByUsername(auth.getName());
-//        return student.getSubmittedAssessments();
-//    }
+    public List<Assessment> getSubmittedAssessments(Long studentId) {
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        return student.getSubmittedAssessments();
+    }
 
 
-//    public List<Notification> getNotifications() {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        Student student = studentRepository.findByUsername(auth.getName());
-//        return student.getNotifications();
-//    }
+    public List<Notification> getNotifications(Long studentId) {
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        return student.getNotifications();
+    }
 }
 
