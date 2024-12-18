@@ -1,4 +1,5 @@
 package dev.FCAI.LMS_Spring.entities;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,6 +23,10 @@ public abstract class User {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @ManyToOne
+    @JoinColumn(name = "admin_id", nullable = true)
+    @JsonBackReference// the admin field that this user is associated with
+    private Admin admin;
     @Column(nullable = false)
     private String password;
 
