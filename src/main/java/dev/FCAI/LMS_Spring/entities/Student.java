@@ -34,7 +34,12 @@ public class Student extends User {
     )
     private List<Notification> notifications = new java.util.ArrayList<>();
 
-    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name = "student_assessments",
+            joinColumns = @JoinColumn(name = "student_id"),
+            inverseJoinColumns = @JoinColumn(name = "assessment_id")
+    )
     private List<Assessment> submittedAssessments = new java.util.ArrayList<>();
 
 

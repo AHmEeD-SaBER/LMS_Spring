@@ -11,7 +11,6 @@ import lombok.Setter;
 @Entity
 @DiscriminatorValue("ASSIGNMENT")
 public class Assignment extends Assessment {
-    @Column(nullable = false)
+    @Column(name="submission_path")
     private String submissionPath;
-
 }

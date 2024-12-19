@@ -11,10 +11,9 @@ import lombok.Setter;
 @Entity
 @DiscriminatorValue("QUIZ")
 public class Quiz extends Assessment {
-    @Column(nullable = false)
+    @Column(name="total_Questions")
     private Integer totalQuestions;
 
-    @Column(nullable = false)
+    @Column(name = "passing_score")
     private Integer passingScore;
-
 }

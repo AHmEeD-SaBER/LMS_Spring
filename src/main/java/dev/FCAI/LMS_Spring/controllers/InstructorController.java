@@ -4,12 +4,16 @@ import com.fasterxml.jackson.annotation.JsonView;
 import dev.FCAI.LMS_Spring.Views;
 import dev.FCAI.LMS_Spring.entities.Assessment;
 import dev.FCAI.LMS_Spring.entities.Course;
+import dev.FCAI.LMS_Spring.entities.Lesson;
+import dev.FCAI.LMS_Spring.entities.Student;
 import dev.FCAI.LMS_Spring.service.InstructorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/instructor")
@@ -53,4 +57,30 @@ public class InstructorController {
     public ResponseEntity<List<Course>> viewAllCourses(@RequestParam Long instructorId) {
         return ResponseEntity.ok(instructorService.viewAllCourses(instructorId));
     }
+
+    @PostMapping("/course/{courseId}/lesson/{instructorId}")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<Lesson> createLesson(@RequestBody Lesson lesson, @PathVariable Long courseId, @PathVariable Long instructorId) {
+        Lesson createdLesson = instructorService.createLesson(lesson, courseId, instructorId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdLesson);
+    }
+
+    @GetMapping("/lesson/{lessonId}/attendance")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<Map<Long, Boolean>> getLessonAttendance(@PathVariable Long lessonId) {
+        Map<Long, Boolean> attendance = instructorService.getLessonAttendance(lessonId);
+        return ResponseEntity.ok(attendance);
+    }
+
+    @PutMapping("/lesson/{lessonId}/attendance/{studentId}")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<Void> markStudentAttendance(@PathVariable Long lessonId, @PathVariable Long studentId) {
+        try {
+            instructorService.markStudentAttendance(lessonId, studentId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
 }
+
