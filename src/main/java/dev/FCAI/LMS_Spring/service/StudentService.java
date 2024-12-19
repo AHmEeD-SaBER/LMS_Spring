@@ -18,6 +18,9 @@ public class StudentService {
     private CourseRepository courseRepository;
 
     @Autowired
+    private AssessmentRepository assessmentRepository;
+
+    @Autowired
     private NotificatiosService notificationPublisher;
 
     public List<Course> getEnrolledCourses(Long studentId) {
@@ -49,6 +52,17 @@ public class StudentService {
     public List<Notification> getNotifications(Long studentId) {
         Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
         return student.getNotifications();
+    }
+
+    public Assessment submitAssessment(Long assessmentId, Long studentId) {
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Assessment assessment = assessmentRepository.findById(assessmentId).orElseThrow(() -> new RuntimeException("Assessment Not found"));
+        assessment.getStudentAssessment().add(student);
+        assessmentRepository.save(assessment);
+        notificationPublisher.notifyStudent(student, "You have successfully submitted an assessment: " + assessment.getTitle());
+        student.getSubmittedAssessments().add(assessment);
+        studentRepository.save(student);
+        return assessment;
     }
 }
 

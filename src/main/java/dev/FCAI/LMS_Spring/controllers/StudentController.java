@@ -15,6 +15,8 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+
     @GetMapping("/courses/{id}")
     public ResponseEntity<List<Course>> getEnrolledCourses(@PathVariable Long id) {
         return ResponseEntity.ok(studentService.getEnrolledCourses(id));
@@ -34,6 +36,11 @@ public class StudentController {
     @GetMapping("/notifications/{id}")
     public ResponseEntity<List<Notification>> getNotifications(@PathVariable Long id) {
         return ResponseEntity.ok(studentService.getNotifications(id));
+    }
+
+    @PostMapping("/submit/{aId}/{id}")
+    public ResponseEntity<Assessment> submitAssessment(@PathVariable Long aId, @PathVariable Long id) {
+        return ResponseEntity.ok(studentService.submitAssessment(aId,id));
     }
 }
 
