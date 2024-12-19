@@ -1,5 +1,7 @@
 package dev.FCAI.LMS_Spring.controllers;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import dev.FCAI.LMS_Spring.Views;
 import dev.FCAI.LMS_Spring.entities.User;
 import dev.FCAI.LMS_Spring.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ public class AdminController {
     private AdminService adminService;
 
     @PostMapping("/user")
+    @JsonView(Views.Summary.class)
     public ResponseEntity<?> createUser(@RequestBody User user) {
         // Log incoming user details
         System.out.println("Incoming User: " + user);
@@ -36,17 +39,20 @@ public class AdminController {
 
 
     @GetMapping("/users/{id}")
+    @JsonView(Views.Summary.class)
     public ResponseEntity<List<User>> findAllUsers(@PathVariable Long id){
         return ResponseEntity.ok(adminService.findAllUsers(id));
     }
 
     @DeleteMapping("/user/{userId}")
+    @JsonView(Views.Summary.class)
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         adminService.deleteUser(userId);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/user")
+    @JsonView(Views.Summary.class)
     public ResponseEntity<User> updateUser(@RequestBody User user) {
         return ResponseEntity.ok(adminService.updateUser(user));
     }

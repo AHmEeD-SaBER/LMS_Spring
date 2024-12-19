@@ -18,7 +18,7 @@ public class StudentService {
     private CourseRepository courseRepository;
 
     @Autowired
-    private NotificationRepository notificationRepository;
+    private NotificatiosService notificationPublisher;
 
     public List<Course> getEnrolledCourses(Long studentId) {
         Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
@@ -28,20 +28,15 @@ public class StudentService {
     @Transactional
     public boolean enrollInCourse(Long courseId, Long studentId) {
         Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
-        Optional<Course> courseOptional = courseRepository.findById(courseId);
-        if (courseOptional.isPresent()) {
-            Course course = courseOptional.get();
-            student.getEnrolledCourses().add(course);
-            studentRepository.save(student);
-            Notification notification = new Notification();
-            notification.setMessage("Successfully enrolled in course: " + course.getTitle());
-            notification.setCreatedAt(LocalDateTime.now());
-            notification.setRead(false);
-            notification.getStudents().add(student);
-            notificationRepository.save(notification);
-            return true;
-        }
-        return false;
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
+        // Add the course to the student's enrolled courses
+        student.getEnrolledCourses().add(course);
+        studentRepository.save(student);
+
+        // Use the NotificationPublisher to send the notification
+        notificationPublisher.notifyStudent(student, "You have successfully enrolled in course: " + course.getTitle());
+
+        return true;
     }
 
 
