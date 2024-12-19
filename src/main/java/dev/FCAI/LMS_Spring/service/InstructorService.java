@@ -119,14 +119,7 @@ public class InstructorService {
         }
 
         lesson.setCourse(course);
-
         List<Student> enrolledStudents = course.getEnrolledStudents();
-        Map<Long, Boolean> attendance = new HashMap<>();
-        for (Student student : enrolledStudents) {
-            attendance.put(student.getId(), false);
-        }
-        lesson.setAttendance(attendance);
-
         for (Student student : enrolledStudents) {
             notificationPublisher.notifyStudent(student,
                     "New Lesson Added: " + course.getTitle() + " - " + lesson.getTitle());
@@ -134,23 +127,24 @@ public class InstructorService {
 
         return lessonRepository.save(lesson);
     }
-    public Map<Long, Boolean> getLessonAttendance(Long lessonId) {
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
-        return lesson.getAttendance();
-    }
-    public void markStudentAttendance(Long lessonId, Long studentId) {
+    @Transactional
+    public Boolean markStudentAttendance(Long lessonId, Long studentId) {
         Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new RuntimeException("Lesson not found"));
-
-        Map<Long, Boolean> attendance = lesson.getAttendance();
-        if (attendance.containsKey(studentId)) {
-            attendance.put(studentId, true);
-        } else {
-            throw new RuntimeException("Student not enrolled in this lesson");
+                .orElseThrow(() -> new RuntimeException("Lesson with ID " + lessonId + " not found"));
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student with ID " + studentId + " not found"));
+        Course course = lesson.getCourse();
+        if (!course.getEnrolledStudents().contains(student)) {
+            throw new RuntimeException("Student " + studentId + " is not enrolled in the course for this lesson.");
         }
-        lessonRepository.save(lesson);
+
+        if (!lesson.getAttendedStudents().contains(student)) {
+            lesson.getAttendedStudents().add(student);
+            return true;
+        }
+        return false;
+
     }
     }
 

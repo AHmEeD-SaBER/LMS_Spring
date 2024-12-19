@@ -4,8 +4,7 @@ import com.fasterxml.jackson.annotation.*;
 import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +15,8 @@ import java.util.List;
         property = "type"
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = Instructor.class, name = "QUIZ"),
-        @JsonSubTypes.Type(value = Instructor.class, name = "ASSIGNMENT"),
+        @JsonSubTypes.Type(value = Quiz.class, name = "QUIZ"),
+        @JsonSubTypes.Type(value = Assignment.class, name = "ASSIGNMENT"),
 })
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
@@ -41,12 +40,17 @@ public abstract class Assessment {
 
     @ManyToOne
     @JoinColumn(name = "course_id",nullable = false)
-    @JsonView(Views.Summary.class)
+    @JsonView(Views.Detailed.class)
+    @JsonBackReference("course-assessments")
     private Course course;
 
    @ManyToMany(mappedBy = "submittedAssessments", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+   @JsonManagedReference("assessment-students")
+   @JsonView(Views.Detailed.class)
    private List <Student> studentAssessment=new ArrayList<>();
 
+   @Column(name="grade",nullable = false)
+   @JsonView(Views.Summary.class)
     private Double grade;
     @Transient
     @JsonProperty("type")

@@ -65,22 +65,11 @@ public class InstructorController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdLesson);
     }
 
-    @GetMapping("/lesson/{lessonId}/attendance")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<Map<Long, Boolean>> getLessonAttendance(@PathVariable Long lessonId) {
-        Map<Long, Boolean> attendance = instructorService.getLessonAttendance(lessonId);
-        return ResponseEntity.ok(attendance);
-    }
 
-    @PutMapping("/lesson/{lessonId}/attendance/{studentId}")
+    @PostMapping("/lesson/{lessonId}/attendance/{studentId}")
     @JsonView(Views.Summary.class)
-    public ResponseEntity<Void> markStudentAttendance(@PathVariable Long lessonId, @PathVariable Long studentId) {
-        try {
-            instructorService.markStudentAttendance(lessonId, studentId);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
+    public ResponseEntity<Boolean> markStudentAttendance(@PathVariable Long lessonId, @PathVariable Long studentId) {
+        return ResponseEntity.ok(instructorService.markStudentAttendance(lessonId, studentId));
     }
 }
 

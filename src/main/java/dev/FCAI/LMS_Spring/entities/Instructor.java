@@ -23,6 +23,7 @@ import java.util.Set;
 @DiscriminatorValue("INSTRUCTOR")
 public class Instructor extends User {
     @OneToMany(mappedBy = "instructor")
+    @JsonManagedReference("instructor-courses")
     @JsonView(Views.Detailed.class)
     private List<Course> createdCourses = new java.util.ArrayList<>();
 
