@@ -112,4 +112,53 @@ public class InstructorService {
         lessonRepository.save(lesson);
         return lesson;
     }
+
+    @Transactional
+    public List<Course> viewAllCourses(Long instructorId) {
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+        return instructor.getCreatedCourses();
+    }
+
+    @Transactional
+    public Course updateCourse(Course course, Long instructorId) {
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+        if (!instructor.getCreatedCourses().contains(course)) {
+            course.setInstructor(instructor);
+            return courseRepository.save(course);
+        }
+        throw new RuntimeException("Instructor does not own this course");
+    }
+
+    @Transactional
+    public void deleteCourse(Long courseId, Long instructorId) {
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+        if (instructor.getCreatedCourses().contains(course)) {
+            courseRepository.delete(course);
+        } else {
+            throw new RuntimeException("Instructor does not own this course");
+        }
+    }
+
+    @Transactional
+    public Boolean markStudentAttendance(Long lessonId, Long studentId) {
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Lesson with ID " + lessonId + " not found"));
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student with ID " + studentId + " not found"));
+        Course course = lesson.getCourse();
+        if (!course.getEnrolledStudents().contains(student)) {
+            throw new RuntimeException("Student " + studentId + " is not enrolled in the course for this lesson.");
+        }
+        if (!lesson.getAttendedStudents().contains(student)) {
+            lesson.getAttendedStudents().add(student);
+            return true;
+        }
+        return false;
+    }
+
 }

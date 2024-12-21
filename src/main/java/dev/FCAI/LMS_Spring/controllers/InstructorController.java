@@ -46,12 +46,6 @@ public class InstructorController {
         return ResponseEntity.ok(instructorService.createAssessment(assessment, courseId, instructorId));
     }
 
-    @GetMapping("/assessments/{courseId}")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<List<Assessment>> viewAllAssessmentsGrades(@PathVariable Long courseId) {
-        return ResponseEntity.ok(instructorService.viewAllAssessmentsGrades(courseId));
-    }
-
     @GetMapping("/courses")
     @JsonView(Views.Summary.class)
     public ResponseEntity<List<Course>> viewAllCourses(@RequestParam Long instructorId) {
