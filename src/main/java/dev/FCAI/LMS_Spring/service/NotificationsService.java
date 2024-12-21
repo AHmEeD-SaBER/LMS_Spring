@@ -3,19 +3,18 @@ import dev.FCAI.LMS_Spring.entities.Notification;
 import dev.FCAI.LMS_Spring.entities.Student;
 import dev.FCAI.LMS_Spring.repository.NotificationRepository;
 import dev.FCAI.LMS_Spring.repository.StudentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 @Service
-public class NotificatiosService {
+public class NotificationsService {
 
     private final NotificationRepository notificationRepository;
     private final StudentRepository studentRepository;
 
-    public NotificatiosService(NotificationRepository notificationRepository, StudentRepository studentRepository) {
+    public NotificationsService(NotificationRepository notificationRepository, StudentRepository studentRepository) {
         this.notificationRepository = notificationRepository;
         this.studentRepository = studentRepository;
     }

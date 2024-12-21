@@ -6,70 +6,47 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class InstructorService {
     @Autowired
     private InstructorRepository instructorRepository;
-
     @Autowired
     private CourseRepository courseRepository;
-
     @Autowired
     private AssessmentRepository assessmentRepository;
-
+    @Autowired
+    private LessonRepository lessonRepository;
+    @Autowired
+    private NotificationsService notificationPublisher;
+    @Autowired
+    private SubmissionRepository submissionRepository;
     @Autowired
     private StudentRepository studentRepository;
 
-    @Autowired
-    private LessonRepository lessonRepository;
-
-    @Autowired
-    private NotificatiosService notificationPublisher;
-
     @Transactional
     public Course createCourse(Course course, Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new RuntimeException("Instructor not found"));
-        if (instructor.getCreatedCourses().contains(course)) return course;
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new RuntimeException("Instructor not found"));
         instructor.getCreatedCourses().add(course);
-        instructorRepository.save(instructor);
         course.setInstructor(instructor);
         return courseRepository.save(course);
     }
 
-
-    @Transactional
-    public void deleteCourse(Long courseId, Long instructorId) {
-        if (courseRepository.findById(courseId).isEmpty()) return;
-        Instructor instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new RuntimeException("Instructor not found"));
-        if (instructor.getCreatedCourses().contains(courseRepository.findById(courseId).get())) {
-            courseRepository.deleteById(courseId);
-        } else throw new RuntimeException("Course not found");
-    }
-
-    @Transactional
-    public Course updateCourse(Course course, Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new RuntimeException("Instructor not found"));
-        if (courseRepository.findById(course.getId()).isEmpty()) throw new RuntimeException("Course not found");
-        if (instructor.getCreatedCourses().contains(course)) {
-            return courseRepository.save(course);
-        } else throw new RuntimeException("Course not found");
-    }
-
     @Transactional
     public Assessment createAssessment(Assessment assessment, Long courseId, Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new RuntimeException("Instructor not found"));
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
         if (!instructor.getCreatedCourses().contains(course)) {
             throw new RuntimeException("Instructor does not own the course");
         }
+
         assessment.setCourse(course);
         course.getAssessments().add(assessment);
-
 
         List<Student> enrolledStudents = course.getEnrolledStudents();
         for (Student student : enrolledStudents) {
@@ -78,35 +55,40 @@ public class InstructorService {
         }
 
         courseRepository.save(course);
-        System.out.println("Creating Assessment: =" + assessment.getType());
         return assessmentRepository.save(assessment);
     }
 
-    private void validateQuiz(Quiz quiz) {
-        if (quiz.getTotalQuestions() == null || quiz.getTotalQuestions() <= 0) {
-            throw new IllegalArgumentException("Total questions must be greater than 0");
+    @Transactional
+    public void gradeEssayQuestion(Long submissionId, Long questionId, double awardedScore) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new RuntimeException("Submission not found"));
+
+        SubmittedAnswer submittedAnswer = submission.getSubmittedAnswers().stream()
+                .filter(sa -> sa.getQuestion().getId().equals(questionId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Question not found in submission"));
+
+        submittedAnswer.setAwardedScore(awardedScore);
+
+        double totalScore = submission.getSubmittedAnswers().stream()
+                .mapToDouble(SubmittedAnswer::getAwardedScore)
+                .sum();
+        submission.setTotalScore(totalScore);
+        boolean allGraded = submission.getSubmittedAnswers().stream()
+                .filter(sa -> sa.getQuestion() instanceof shortAnswer)
+                .allMatch(sa -> sa.getAwardedScore() > 0);
+
+        if (allGraded) {
+            submission.setGraded(true);
+            Student student = submission.getStudent();
+            notificationPublisher.notifyStudent(student,
+                    "Your grades for " + submission.getAssessment().getTitle() + " are now available.");
         }
-        if (quiz.getPassingScore() == null || quiz.getPassingScore() < 0) {
-            throw new IllegalArgumentException("Passing score must be 0 or greater");
-        }
+
+        submissionRepository.save(submission);
     }
 
-    private void validateAssignment(Assignment assignment) {
-        if (assignment.getSubmissionPath() == null || assignment.getSubmissionPath().isEmpty()) {
-            throw new IllegalArgumentException("Submission path cannot be empty");
-        }
-    }
-
-    public List<Assessment> viewAllAssessmentsGrades(Long courseId) {
-        Optional<Course> courseOptional = courseRepository.findById(courseId);
-        return courseOptional.map(Course::getAssessments).orElse(List.of());
-    }
-
-    public List<Course> viewAllCourses(Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new RuntimeException("Instructor not found"));
-        return instructor.getCreatedCourses();
-    }
-
+    @Transactional
     public Lesson createLesson(Lesson lesson, Long courseId, Long instructorId) {
         Instructor instructor = instructorRepository.findById(instructorId)
                 .orElseThrow(() -> new RuntimeException("Instructor not found"));
@@ -119,32 +101,15 @@ public class InstructorService {
         }
 
         lesson.setCourse(course);
+        course.getLessons().add(lesson);
+
         List<Student> enrolledStudents = course.getEnrolledStudents();
         for (Student student : enrolledStudents) {
             notificationPublisher.notifyStudent(student,
                     "New Lesson Added: " + course.getTitle() + " - " + lesson.getTitle());
         }
 
-        return lessonRepository.save(lesson);
+        lessonRepository.save(lesson);
+        return lesson;
     }
-
-    @Transactional
-    public Boolean markStudentAttendance(Long lessonId, Long studentId) {
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new RuntimeException("Lesson with ID " + lessonId + " not found"));
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student with ID " + studentId + " not found"));
-        Course course = lesson.getCourse();
-        if (!course.getEnrolledStudents().contains(student)) {
-            throw new RuntimeException("Student " + studentId + " is not enrolled in the course for this lesson.");
-        }
-
-        if (!lesson.getAttendedStudents().contains(student)) {
-            lesson.getAttendedStudents().add(student);
-            return true;
-        }
-        return false;
-
-    }
-    }
-
+}

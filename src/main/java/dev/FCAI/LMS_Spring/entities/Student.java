@@ -1,5 +1,7 @@
+// src/main/java/dev/FCAI/LMS_Spring/entities/Student.java
 package dev.FCAI.LMS_Spring.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -13,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@JsonIdentityInfo( // Use to prevent cyclic references
+@JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "id"
 )
@@ -25,7 +27,7 @@ public class Student extends User {
             joinColumns = @JoinColumn(name = "student_id"),
             inverseJoinColumns = @JoinColumn(name = "course_id")
     )
-    @JsonView(Views.Detailed.class) // No need for @JsonBackReference annotation here
+    @JsonView(Views.Detailed.class)
     private List<Course> enrolledCourses = new java.util.ArrayList<>();
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
@@ -34,22 +36,11 @@ public class Student extends User {
             joinColumns = @JoinColumn(name = "student_id"),
             inverseJoinColumns = @JoinColumn(name = "notification_id")
     )
-    @JsonView(Views.Detailed.class) // No need for @JsonManagedReference annotation here
+    @JsonView(Views.Detailed.class)
     private List<Notification> notifications = new java.util.ArrayList<>();
 
-    @ManyToMany(cascade = {
-            CascadeType.DETACH,
-            CascadeType.MERGE,
-            CascadeType.PERSIST,
-            CascadeType.REFRESH
-    })
-    @JoinTable(
-            name = "student_assessments",
-            joinColumns = @JoinColumn(name = "student_id"),
-            inverseJoinColumns = @JoinColumn(name = "assessment_id")
-    )
-    @JsonView(Views.Detailed.class)
-    private List<Assessment> submittedAssessments = new java.util.ArrayList<>();
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+    private List<Submission> submissions = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(

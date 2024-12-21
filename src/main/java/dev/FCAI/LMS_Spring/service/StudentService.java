@@ -1,68 +1,62 @@
 package dev.FCAI.LMS_Spring.service;
-import dev.FCAI.LMS_Spring.repository.*;
+
 import dev.FCAI.LMS_Spring.entities.*;
+import dev.FCAI.LMS_Spring.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class StudentService {
     @Autowired
     private StudentRepository studentRepository;
-
     @Autowired
     private CourseRepository courseRepository;
-
     @Autowired
-    private AssessmentRepository assessmentRepository;
-
+    private NotificationsService notificationService;
     @Autowired
-    private NotificatiosService notificationPublisher;
+    private SubmissionRepository submissionRepository;
 
     public List<Course> getEnrolledCourses(Long studentId) {
-        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
         return student.getEnrolledCourses();
     }
 
     @Transactional
-    public boolean enrollInCourse(Long courseId, Long studentId) {
-        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
-        // Add the course to the student's enrolled courses
+    public void enrollInCourse(Long courseId, Long studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
         student.getEnrolledCourses().add(course);
+        course.getEnrolledStudents().add(student);
+
+        notificationService.notifyStudent(student,
+                "You have successfully enrolled in course: " + course.getTitle());
+
         studentRepository.save(student);
-
-        // Use the NotificationPublisher to send the notification
-        notificationPublisher.notifyStudent(student, "You have successfully enrolled in course: " + course.getTitle());
-
-        return true;
+        courseRepository.save(course);
     }
-
-
-    public List<Assessment> getSubmittedAssessments(Long studentId) {
-        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
-        return student.getSubmittedAssessments();
-    }
-
 
     public List<Notification> getNotifications(Long studentId) {
-        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
         return student.getNotifications();
     }
 
-    public Assessment submitAssessment(Long assessmentId, Long studentId) {
-        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
-        Assessment assessment = assessmentRepository.findById(assessmentId).orElseThrow(() -> new RuntimeException("Assessment Not found"));
-        assessment.getStudentAssessment().add(student);
-        assessmentRepository.save(assessment);
-        notificationPublisher.notifyStudent(student, "You have successfully submitted an assessment: " + assessment.getTitle());
-        student.getSubmittedAssessments().add(assessment);
-        studentRepository.save(student);
-        return assessment;
+    public Submission viewSubmission(Long submissionId, Long studentId) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new RuntimeException("Submission not found"));
+        if (!submission.getStudent().getId().equals(studentId)) {
+            throw new RuntimeException("Not authorized to view this submission");
+        }
+        if (!submission.isGraded()) {
+            throw new RuntimeException("Submission is not yet graded");
+        }
+        return submission;
     }
 }
-

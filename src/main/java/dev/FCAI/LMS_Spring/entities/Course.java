@@ -5,8 +5,8 @@ import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.action.internal.OrphanRemovalAction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIdentityInfo(
@@ -30,27 +30,20 @@ public class Course {
     @JsonView(Views.Summary.class)
     private String description;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-
+    @ManyToOne
     @JoinColumn(name = "instructor_id")
     @JsonView(Views.Detailed.class)
-    @JsonBackReference("instructor-courses")
     private Instructor instructor;
 
-    @ManyToMany(mappedBy = "enrolledCourses", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(mappedBy = "enrolledCourses")
     @JsonView(Views.Detailed.class)
-    @JsonManagedReference("course-students")
-    private List<Student> enrolledStudents = new java.util.ArrayList<>();
-
+    private List<Student> enrolledStudents = new ArrayList<>();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     @JsonView(Views.Detailed.class)
-    @JsonManagedReference("course-lessons")
-    private List<Lesson> lessons = new java.util.ArrayList<>();
+    private List<Lesson> lessons = new ArrayList<>();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     @JsonView(Views.Detailed.class)
-    @JsonManagedReference("course-assessments")
-    private List<Assessment> assessments = new java.util.ArrayList<>();
-
+    private List<Assessment> assessments = new ArrayList<>();
 }

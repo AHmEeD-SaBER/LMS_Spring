@@ -13,7 +13,8 @@ import lombok.Setter;
 @Entity
 @DiscriminatorValue("ASSIGNMENT")
 public class Assignment extends Assessment {
-    @Column(name="submission_path")
+    @Column(name = "submission_path")
     @JsonView(Views.Summary.class)
     private String submissionPath;
+
 }

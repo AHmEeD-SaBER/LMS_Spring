@@ -24,6 +24,5 @@ import java.util.Set;
 public class Admin extends User {
     @OneToMany(mappedBy = "admin", orphanRemoval = true, cascade = jakarta.persistence.CascadeType.ALL)
     @JsonView(Views.Detailed.class)
-    @JsonManagedReference("admin-users")
     private List<User> users = new java.util.ArrayList<>();
 }

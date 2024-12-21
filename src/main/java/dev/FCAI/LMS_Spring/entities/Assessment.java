@@ -5,7 +5,6 @@ import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
 import lombok.Data;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,44 +17,47 @@ import java.util.List;
         @JsonSubTypes.Type(value = Quiz.class, name = "QUIZ"),
         @JsonSubTypes.Type(value = Assignment.class, name = "ASSIGNMENT"),
 })
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "id"
-)
 @Data
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "assessment_type")
 public abstract class Assessment {
-    @Column(name="assessment_id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "assessment_id")
     @JsonView(Views.Summary.class)
     private Long id;
 
-
-    @Column(name="title",nullable = false)
+    @Column(name = "title", nullable = false)
     @JsonView(Views.Summary.class)
     private String title;
 
     @ManyToOne
-    @JoinColumn(name = "course_id",nullable = false)
+    @JoinColumn(name = "course_id", nullable = false)
     @JsonView(Views.Detailed.class)
-    @JsonBackReference("course-assessments")
     private Course course;
 
-   @ManyToMany(mappedBy = "submittedAssessments", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-   @JsonManagedReference("assessment-students")
-   @JsonView(Views.Detailed.class)
-   private List <Student> studentAssessment=new ArrayList<>();
-
-   @Column(name="grade",nullable = false)
-   @JsonView(Views.Summary.class)
+    @Column(name = "grade", nullable = false)
+    @JsonView(Views.Summary.class)
     private Double grade;
+
+    // New relationship to questions
+    @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonView(Views.Detailed.class)
+    private List<Question> questions = new ArrayList<>();
+
+    // Relationship to submissions
+    @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Submission> submissions = new ArrayList<>();
+
     @Transient
     @JsonProperty("type")
     public String getType() {
-        return this.getClass().getAnnotation(DiscriminatorValue.class).value();
+        DiscriminatorValue val = this.getClass().getAnnotation(DiscriminatorValue.class);
+        if (val != null) {
+            return val.value();
+        } else {
+            return null;
+        }
     }
-
 }

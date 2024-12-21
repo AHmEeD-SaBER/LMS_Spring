@@ -1,20 +1,19 @@
 package dev.FCAI.LMS_Spring.entities;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @Entity
-@JsonIdentityInfo( // Use this to resolve cycles automatically
+@JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "id"
 )
@@ -28,7 +27,6 @@ public class Notification {
     @JsonView(Views.Summary.class)
     private String message;
 
-    @Setter
     @Column(nullable = false)
     @JsonView(Views.Summary.class)
     private LocalDateTime createdAt;
@@ -37,7 +35,12 @@ public class Notification {
     @JsonView(Views.Summary.class)
     private boolean isRead;
 
-    @ManyToMany(mappedBy = "notifications")
-    @JsonView(Views.Detailed.class) // No need for @JsonBackReference anymore
-    private List<Student> students = new java.util.ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "student_notification",
+            joinColumns = @JoinColumn(name = "notification_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id")
+    )
+    @JsonView(Views.Detailed.class)
+    private List<Student> students = new ArrayList<>();
 }

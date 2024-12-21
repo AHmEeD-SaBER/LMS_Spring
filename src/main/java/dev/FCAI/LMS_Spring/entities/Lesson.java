@@ -1,18 +1,20 @@
 package dev.FCAI.LMS_Spring.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
 @Setter
 @Getter
 @Entity
@@ -32,14 +34,15 @@ public class Lesson {
 
     @ManyToOne
     @JoinColumn(name = "course_id")
-    @JsonBackReference("course-lessons")
     @JsonView(Views.Detailed.class)
     private Course course;
 
-    @ManyToMany(mappedBy = "attendedLessons")
-    @JsonManagedReference("lesson-attendance")
+    @ManyToMany
+    @JoinTable(
+            name = "student_lesson",
+            joinColumns = @JoinColumn(name = "lesson_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id")
+    )
     @JsonView(Views.Detailed.class)
     private List<Student> attendedStudents = new ArrayList<>();
-
-
 }
