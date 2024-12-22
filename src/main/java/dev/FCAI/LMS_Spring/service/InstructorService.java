@@ -50,6 +50,14 @@ public class InstructorService {
         assessment.setCourse(course);
         course.getAssessments().add(assessment);
 
+        // Save the assessment first
+        Assessment savedAssessment = assessmentRepository.save(assessment);
+
+        // Save the questions associated with the assessment
+        for (Question question : savedAssessment.getQuestions()) {
+            question.setAssessment(savedAssessment);
+        }
+
         List<Student> enrolledStudents = course.getEnrolledStudents();
         for (Student student : enrolledStudents) {
             notificationPublisher.notifyStudent(student,
@@ -57,7 +65,7 @@ public class InstructorService {
         }
 
         courseRepository.save(course);
-        return assessmentRepository.save(assessment);
+        return savedAssessment;
     }
 
 

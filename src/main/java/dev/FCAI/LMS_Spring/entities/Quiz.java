@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
+@DiscriminatorValue("QUIZ")
 public class Quiz extends Assessment {
 
 }

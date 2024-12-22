@@ -40,10 +40,11 @@ public class StudentController {
     @GetMapping("/course/lesson/{id}/{lessonId}")
     @JsonView(Views.Summary.class)
     public ResponseEntity<Lesson> getLesson(@PathVariable Long id, @PathVariable Long lessonId) {
-        return ResponseEntity.ok(studentService.getLesson(id, lessonId));
+        return ResponseEntity.ok(studentService.getLesson(lessonId, id));
     }
 
     @GetMapping("/lessons/{lessonId}/materials/{materialId}/download")
+    @JsonView(Views.Summary.class)
     public ResponseEntity<byte[]> downloadLessonMaterial(
             @PathVariable Long lessonId,
             @PathVariable Long materialId) {
@@ -58,17 +59,20 @@ public class StudentController {
     }
 
     @PostMapping("enroll/{studentId}/{courseId}/")
+    @JsonView(Views.Summary.class)
     public ResponseEntity<String> enrollInCourse(@PathVariable Long courseId, @PathVariable Long studentId) {
         studentService.enrollInCourse(courseId, studentId);
         return ResponseEntity.ok("Enrolled successfully");
     }
 
     @GetMapping("/assessment/{id}/{assessmentId}")
+    @JsonView(Views.Summary.class)
     public ResponseEntity<Assessment> getAssessment(@PathVariable Long id, @PathVariable Long assessmentId){
-        return ResponseEntity.ok(assessmentService.getAssessmentForStudent(id, assessmentId));
+        return ResponseEntity.ok(assessmentService.getAssessmentForStudent(assessmentId, id));
     }
 
     @PostMapping("/submit/{assessmentId}/{id}")
+    @JsonView(Views.Summary.class)
     public ResponseEntity<String> submitAssessment(
             @PathVariable Long id,
             @PathVariable Long assessmentId,

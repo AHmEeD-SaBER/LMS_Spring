@@ -33,6 +33,7 @@ public class Lesson {
     @JsonView(Views.Detailed.class)
     private Course course;
 
+    @JsonView(Views.Summary.class)
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LessonMaterial> materials = new ArrayList<>();
 

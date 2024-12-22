@@ -1,5 +1,7 @@
 package dev.FCAI.LMS_Spring.entities;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +17,7 @@ public class MCQ extends Question {
     @ElementCollection
     @CollectionTable(name = "mcq_options", joinColumns = @JoinColumn(name = "question_id"))
     @Column(name = "option")
+    @JsonView(Views.Summary.class)
     private List<String> options = new ArrayList<>();
 
     @Override

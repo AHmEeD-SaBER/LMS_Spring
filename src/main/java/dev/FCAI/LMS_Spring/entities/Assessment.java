@@ -43,7 +43,7 @@ public abstract class Assessment {
 
     // New relationship to questions
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonView(Views.Detailed.class)
+    @JsonView(Views.Summary.class)
     private List<Question> questions = new ArrayList<>();
 
     // Relationship to submissions
