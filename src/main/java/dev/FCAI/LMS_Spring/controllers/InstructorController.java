@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +59,21 @@ public class InstructorController {
     public ResponseEntity<Lesson> createLesson(@RequestBody Lesson lesson, @PathVariable Long courseId, @PathVariable Long instructorId) {
         Lesson createdLesson = instructorService.createLesson(lesson, courseId, instructorId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdLesson);
+    }
+
+    @PostMapping("/{instructorId}/lessons/{lessonId}/materials/upload")
+    public ResponseEntity<String> uploadLessonMaterial(
+            @PathVariable Long instructorId,
+            @PathVariable Long lessonId,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            instructorService.uploadLessonMaterial(instructorId, lessonId, file);
+            return ResponseEntity.ok("File uploaded successfully.");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error reading file: " + e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error uploading file: " + e.getMessage());
+        }
     }
 
 

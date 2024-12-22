@@ -28,14 +28,13 @@ public class Lesson {
     @JsonView(Views.Summary.class)
     private String title;
 
-    @Column(nullable = false)
-    @JsonView(Views.Summary.class)
-    private String otpCode;
-
     @ManyToOne
     @JoinColumn(name = "course_id")
     @JsonView(Views.Detailed.class)
     private Course course;
+
+    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LessonMaterial> materials = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -45,4 +44,5 @@ public class Lesson {
     )
     @JsonView(Views.Detailed.class)
     private List<Student> attendedStudents = new ArrayList<>();
+
 }

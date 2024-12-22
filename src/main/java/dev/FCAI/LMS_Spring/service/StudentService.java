@@ -20,6 +20,8 @@ public class StudentService {
     private SubmissionRepository submissionRepository;
     @Autowired
     private LessonRepository lessonRepository;
+    @Autowired
+    private LessonMaterialRepository lessonMaterialRepository;
 
     public List<Course> getEnrolledCourses(Long studentId) {
         Student student = studentRepository.findById(studentId)
@@ -61,6 +63,16 @@ public class StudentService {
             return lesson;
         }
         else throw new RuntimeException("Student didn't enroll in this course");
+    }
+
+    public LessonMaterial getLessonMaterial(Long lessonId, Long materialId) {
+        LessonMaterial lessonMaterial = lessonMaterialRepository.findById(materialId)
+                .orElseThrow(() -> new RuntimeException("Lesson material not found"));
+        if (!lessonMaterial.getLesson().getId().equals(lessonId)) {
+            throw new RuntimeException("Lesson material does not belong to the specified lesson");
+        }
+        // Additional checks to ensure the student is enrolled in the course
+        return lessonMaterial;
     }
 
     public List<Notification> getNotifications(Long studentId) {

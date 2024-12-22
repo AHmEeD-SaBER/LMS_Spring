@@ -5,7 +5,9 @@ import dev.FCAI.LMS_Spring.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -130,6 +132,35 @@ public class InstructorService {
             return true;
         }
         return false;
+    }
+
+    @Transactional
+    public Lesson uploadLessonMaterial(Long instructorId, Long lessonId, MultipartFile file) throws IOException {
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+
+        Course course = lesson.getCourse();
+
+        if (!instructor.getCreatedCourses().contains(course)) {
+            throw new RuntimeException("Instructor does not own this course");
+        }
+
+        // Create a new LessonMaterial
+        LessonMaterial lessonMaterial = new LessonMaterial();
+
+        // Include lesson ID in filename
+        lessonMaterial.setFilename("lesson_" + lessonId + "_" + file.getOriginalFilename());
+        lessonMaterial.setData(file.getBytes());
+        lessonMaterial.setLesson(lesson);
+
+        lesson.getMaterials().add(lessonMaterial);
+
+        lessonRepository.save(lesson);
+
+        return lesson;
     }
 
 }

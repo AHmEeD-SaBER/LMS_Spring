@@ -29,4 +29,7 @@ public class Submission {
 
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubmittedAnswer> submittedAnswers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SubmissionFile> submissionFiles = new ArrayList<>();
 }
