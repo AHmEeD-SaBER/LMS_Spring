@@ -58,35 +58,6 @@ public class InstructorService {
         return assessmentRepository.save(assessment);
     }
 
-    @Transactional
-    public void gradeEssayQuestion(Long submissionId, Long questionId, double awardedScore) {
-        Submission submission = submissionRepository.findById(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission not found"));
-
-        SubmittedAnswer submittedAnswer = submission.getSubmittedAnswers().stream()
-                .filter(sa -> sa.getQuestion().getId().equals(questionId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Question not found in submission"));
-
-        submittedAnswer.setAwardedScore(awardedScore);
-
-        double totalScore = submission.getSubmittedAnswers().stream()
-                .mapToDouble(SubmittedAnswer::getAwardedScore)
-                .sum();
-        submission.setTotalScore(totalScore);
-        boolean allGraded = submission.getSubmittedAnswers().stream()
-                .filter(sa -> sa.getQuestion() instanceof shortAnswer)
-                .allMatch(sa -> sa.getAwardedScore() > 0);
-
-        if (allGraded) {
-            submission.setGraded(true);
-            Student student = submission.getStudent();
-            notificationPublisher.notifyStudent(student,
-                    "Your grades for " + submission.getAssessment().getTitle() + " are now available.");
-        }
-
-        submissionRepository.save(submission);
-    }
 
     @Transactional
     public Lesson createLesson(Lesson lesson, Long courseId, Long instructorId) {

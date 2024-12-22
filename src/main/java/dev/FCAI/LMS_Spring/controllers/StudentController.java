@@ -21,41 +21,68 @@ public class StudentController {
     @Autowired
     private AssessmentService assessmentService;
 
-    @GetMapping("/{studentId}/courses")
+    @GetMapping("/courses/{id}")
     @JsonView(Views.Summary.class)
-    public ResponseEntity<List<Course>> getEnrolledCourses(@PathVariable Long studentId) {
-        return ResponseEntity.ok(studentService.getEnrolledCourses(studentId));
+    public ResponseEntity<List<Course>> getEnrolledCourses(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getEnrolledCourses(id));
     }
 
-    @PostMapping("/{studentId}/courses/{courseId}/enroll")
+    @GetMapping("/course/{id}/{courseId")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<Course> getEnrolledCourse(@PathVariable Long id, @PathVariable Long courseId) {
+        return ResponseEntity.ok(studentService.getEnrolledCourse(id, courseId));
+    }
+
+    @GetMapping("/course/lesson/{id}/{lessonId")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<Lesson> getLesson(@PathVariable Long id, @PathVariable Long lessonId) {
+        return ResponseEntity.ok(studentService.getLesson(id, lessonId));
+    }
+
+    @PostMapping("enroll/{studentId}/{courseId}/")
     public ResponseEntity<String> enrollInCourse(@PathVariable Long courseId, @PathVariable Long studentId) {
         studentService.enrollInCourse(courseId, studentId);
         return ResponseEntity.ok("Enrolled successfully");
     }
 
-    @GetMapping("/{studentId}/notifications")
+    @GetMapping("/assessment/{id}/{assessmentId}")
+    public ResponseEntity<Assessment> getAssessment(@PathVariable Long id, @PathVariable Long assessmentId){
+        return ResponseEntity.ok(assessmentService.getAssessmentForStudent(id, assessmentId));
+    }
+
+    @PostMapping("/submit/{assessmentId}/{id}")
+    public ResponseEntity<String> submitAssessment(
+            @PathVariable Long id,
+            @PathVariable Long assessmentId,
+            @RequestBody Map<Long, String> answers) {
+        assessmentService.submitAssessment(assessmentId, id, answers);
+        return ResponseEntity.ok("Assessment submitted successfully");
+    }
+
+    @GetMapping("notifications/{id}")
     @JsonView(Views.Summary.class)
-    public ResponseEntity<List<Notification>> getNotifications(@PathVariable Long studentId) {
-        return ResponseEntity.ok(studentService.getNotifications(studentId));
+    public ResponseEntity<List<Notification>> getNotifications(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getNotifications(id));
     }
 
 
-    @GetMapping("/{studentId}/submissions/{submissionId}")
+    @GetMapping("/submission/{submissionId}/{id}")
     @JsonView(Views.Detailed.class)
     public ResponseEntity<Submission> getSubmission(
-            @PathVariable Long studentId,
+            @PathVariable Long id,
             @PathVariable Long submissionId) {
-        Submission submission = studentService.viewSubmission(submissionId, studentId);
+        Submission submission = studentService.viewSubmission(submissionId, id);
         return ResponseEntity.ok(submission);
     }
 
-
-    @PostMapping("/{studentId}/assessments/{assessmentId}/submit")
-    public ResponseEntity<String> submitAssessment(
-            @PathVariable Long studentId,
-            @PathVariable Long assessmentId,
-            @RequestBody Map<Long, String> answers) {
-        assessmentService.submitAssessment(assessmentId, studentId, answers);
-        return ResponseEntity.ok("Assessment submitted successfully");
+    @GetMapping("/submission/{id}")
+    @JsonView(Views.Detailed.class)
+    public ResponseEntity<List<Submission>> getSubmissions(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getSubmissions(id));
     }
+
+
+
+
 }

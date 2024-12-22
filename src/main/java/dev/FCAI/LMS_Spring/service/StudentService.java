@@ -18,6 +18,8 @@ public class StudentService {
     private NotificationsService notificationService;
     @Autowired
     private SubmissionRepository submissionRepository;
+    @Autowired
+    private LessonRepository lessonRepository;
 
     public List<Course> getEnrolledCourses(Long studentId) {
         Student student = studentRepository.findById(studentId)
@@ -42,6 +44,25 @@ public class StudentService {
         courseRepository.save(course);
     }
 
+    public Course getEnrolledCourse(Long courseId, Long studentId){
+        Student  student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
+        if(course.getEnrolledStudents().contains(student)){
+            return course;
+        }
+        else throw new RuntimeException("Student didn't enroll in this course");
+    }
+
+    public Lesson getLesson(Long lessonId, Long studentId){
+        Lesson lesson = lessonRepository.findById(lessonId).orElseThrow(() -> new RuntimeException("Lesson not found"));
+        Student  student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Course course = lesson.getCourse();
+        if(course.getEnrolledStudents().contains(student)){
+            return lesson;
+        }
+        else throw new RuntimeException("Student didn't enroll in this course");
+    }
+
     public List<Notification> getNotifications(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -58,5 +79,10 @@ public class StudentService {
             throw new RuntimeException("Submission is not yet graded");
         }
         return submission;
+    }
+
+    public List<Submission> getSubmissions(Long studentId){
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        return student.getSubmissions();
     }
 }
