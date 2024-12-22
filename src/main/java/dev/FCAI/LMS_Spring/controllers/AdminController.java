@@ -11,11 +11,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
     @Autowired
     private AdminService adminService;
+    @GetMapping("/")
+    public String greet() {
+        return "Hello Admin";
+    }
 
     @PostMapping("/user")
     @JsonView(Views.Summary.class)

@@ -5,24 +5,24 @@ import dev.FCAI.LMS_Spring.Views;
 import dev.FCAI.LMS_Spring.entities.Assessment;
 import dev.FCAI.LMS_Spring.entities.Course;
 import dev.FCAI.LMS_Spring.entities.Lesson;
-import dev.FCAI.LMS_Spring.entities.Student;
 import dev.FCAI.LMS_Spring.service.InstructorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/instructor")
 public class InstructorController {
     @Autowired
     private InstructorService instructorService;
-
+    @GetMapping("/")
+    public String greet() {
+        return "Hello instructor";
+    }
     @PostMapping("/course")
     @JsonView(Views.Summary.class)
     public ResponseEntity<Course> createCourse(@RequestBody Course course, @RequestParam Long instructorId) {

@@ -1,58 +1,31 @@
-//package dev.FCAI.LMS_Spring.security;
-//
-//import lombok.Getter;
-//import org.springframework.security.core.GrantedAuthority;
-//import org.springframework.security.core.userdetails.UserDetails;
-//import org.springframework.security.core.userdetails.UserDetailsService;
-//
-//import java.util.Collection;
-//import java.util.List;
-//
-//public class CustomUserDetails implements UserDetails {
-//
-//    private final String username;
-//    private final String password;
-//    private final List<GrantedAuthority> roles;
-//
-//    public CustomUserDetails(String username, String password, List<GrantedAuthority> roles) {
-//        this.username = username;
-//        this.password = password;
-//        this.roles = roles;
-//    }
-//
-//    @Override
-//    public Collection<? extends GrantedAuthority> getAuthorities() {
-//        return roles;
-//    }
-//
-//    @Override
-//    public String getPassword() {
-//        return password;
-//    }
-//
-//    @Override
-//    public String getUsername() {
-//        return username;
-//    }
-//
-//    @Override
-//    public boolean isAccountNonExpired() {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean isAccountNonLocked() {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean isCredentialsNonExpired() {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean isEnabled() {
-//        return true;
-//    }
-//}
-//
+package dev.FCAI.LMS_Spring.security;
+
+import dev.FCAI.LMS_Spring.entities.User;
+import dev.FCAI.LMS_Spring.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import java.util.Collections;
+
+@Service
+public class CustomUserDetails implements UserDetailsService {
+
+    @Autowired
+    private UserRepository repo;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = repo.findByUsername(username);
+        if(user == null) {
+            throw new UsernameNotFoundException(username);
+        }
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+        );
+    }
+}
