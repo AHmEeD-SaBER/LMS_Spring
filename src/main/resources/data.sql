@@ -1,15 +1,15 @@
 -- Insert sample Admin
 INSERT INTO users (username, password, email, first_name, last_name, user_role) VALUES
-('admin1', 'password123', 'admin1@example.com', 'Admin', 'One', 'ADMIN');
+('admin1', '$2a$12$cjt3LYndAzFrwFw9eJ9qreqST8enZb45dl6m/9Mz10DXPl0XvTgAe', 'admin1@example.com', 'Admin', 'One', 'ADMIN');
 
 -- Insert sample Instructor
 INSERT INTO users (username, password, email, first_name, last_name, user_role, admin_id) VALUES
-('instructor1', 'password456', 'instructor1@example.com', 'Instructor', 'One', 'INSTRUCTOR', 1);
+('instructor1', '$2a$12$5uzE5IaemyxR4ztVdg7hZuN5nyRwyJx4fqaHX.BgcUTxVM2kM9IOu', 'instructor1@example.com', 'Instructor', 'One', 'INSTRUCTOR', 1);
 
 -- Insert sample Students
 INSERT INTO users (username, password, email, first_name, last_name, user_role, admin_id) VALUES
-('student1', 'password789', 'student1@example.com', 'Student', 'One', 'STUDENT', 1),
-('student2', 'password101', 'student2@example.com', 'Student', 'Two', 'STUDENT', 1);
+('student1', '$2a$12$YyHzmuv5P8Uk2q9wNQa2O.Q/gW.jhhGtZ5ruCUxdOqRu8/51L8zAq', 'student1@example.com', 'Student', 'One', 'STUDENT', 1),
+('student2', '$2a$12$p8PBLUWPXuHy7D8ba7QEEOyi./nmG4vu6oktvJkeO9B9NiJoucbTq', 'student2@example.com', 'Student', 'Two', 'STUDENT', 1);
 
 -- Insert sample Courses
 INSERT INTO course (title, description, instructor_id) VALUES
