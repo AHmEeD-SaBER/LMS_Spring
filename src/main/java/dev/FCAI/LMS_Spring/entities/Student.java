@@ -41,7 +41,7 @@ public class Student extends User {
     private List<Notification> notifications = new java.util.ArrayList<>();
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
-    private List<Submission> submissions = new ArrayList<>();
+    private List<Submission> submissions = new java.util.ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(

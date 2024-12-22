@@ -31,13 +31,13 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getEnrolledCourses(id));
     }
 
-    @GetMapping("/course/{id}/{courseId")
+    @GetMapping("/course/{id}/{courseId}")
     @JsonView(Views.Summary.class)
     public ResponseEntity<Course> getEnrolledCourse(@PathVariable Long id, @PathVariable Long courseId) {
         return ResponseEntity.ok(studentService.getEnrolledCourse(id, courseId));
     }
 
-    @GetMapping("/course/lesson/{id}/{lessonId")
+    @GetMapping("/course/lesson/{id}/{lessonId}")
     @JsonView(Views.Summary.class)
     public ResponseEntity<Lesson> getLesson(@PathVariable Long id, @PathVariable Long lessonId) {
         return ResponseEntity.ok(studentService.getLesson(id, lessonId));
