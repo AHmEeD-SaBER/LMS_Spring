@@ -4,8 +4,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonView;
 import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,

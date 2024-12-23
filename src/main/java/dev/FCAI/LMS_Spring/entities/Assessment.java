@@ -3,7 +3,10 @@ package dev.FCAI.LMS_Spring.entities;
 import com.fasterxml.jackson.annotation.*;
 import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;

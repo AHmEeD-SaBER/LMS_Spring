@@ -3,8 +3,7 @@ package dev.FCAI.LMS_Spring.entities;
 import com.fasterxml.jackson.annotation.JsonView;
 import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +12,7 @@ import java.util.List;
 @DiscriminatorValue("MCQ")
 @Getter
 @Setter
+@NoArgsConstructor
 public class MCQ extends Question {
     @ElementCollection
     @CollectionTable(name = "mcq_options", joinColumns = @JoinColumn(name = "question_id"))
