@@ -38,9 +38,11 @@ public abstract class Question {
     protected String questionText;
 
     @ManyToOne
-    @JoinColumn(name = "assessment_id")
+    @JoinColumn(name = "quiz_id")
     @JsonView(Views.Detailed.class)
-    private Assessment assessment;
+    private Quiz quiz;
+
+
 
     public abstract double gradeQuestion(String submittedAnswer);
 }

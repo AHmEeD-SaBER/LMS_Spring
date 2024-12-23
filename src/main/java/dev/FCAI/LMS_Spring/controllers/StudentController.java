@@ -2,6 +2,9 @@ package dev.FCAI.LMS_Spring.controllers;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import dev.FCAI.LMS_Spring.Views;
+import dev.FCAI.LMS_Spring.dto.request.SubmitQuizRequestDTO;
+import dev.FCAI.LMS_Spring.dto.response.*;
+import dev.FCAI.LMS_Spring.dto.response.*;
 import dev.FCAI.LMS_Spring.entities.*;
 import dev.FCAI.LMS_Spring.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,35 +70,30 @@ public class StudentController {
         return ResponseEntity.ok("Enrolled successfully");
     }
 
-    @GetMapping("/assessment/{id}/{assessmentId}")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<Assessment> getAssessment(@PathVariable Long id, @PathVariable Long assessmentId){
-        return ResponseEntity.ok(assessmentService.getAssessmentForStudent(assessmentId, id));
+    @GetMapping("/{studentId}/assessments/{assessmentId}/quiz")
+    public ResponseEntity<StudentQuizResponseDTO> getQuizForStudent(
+            @PathVariable Long studentId,
+            @PathVariable Long assessmentId) {
+        StudentQuizResponseDTO quizDTO = assessmentService.getAssessmentForStudent(assessmentId, studentId);
+        return ResponseEntity.ok(quizDTO);
     }
 
-    @PostMapping("/submit/{assessmentId}/{id}")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<String> submitAssessment(
-            @PathVariable Long id,
+    @PostMapping("/{studentId}/assessments/{assessmentId}/quiz/submit")
+    public ResponseEntity<SubmitAssessmentResponseDTO> submitQuiz(
+            @PathVariable Long studentId,
             @PathVariable Long assessmentId,
-            @RequestBody Map<Long, String> answers) {
-        assessmentService.submitAssessment(assessmentId, id, answers);
-        return ResponseEntity.ok("Assessment submitted successfully");
+            @RequestBody SubmitQuizRequestDTO submitDTO) {
+        SubmitAssessmentResponseDTO responseDTO = assessmentService.submitAssessment(assessmentId, studentId, submitDTO);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @PostMapping("/{studentId}/assignments/{assignmentId}/submit")
-    public ResponseEntity<String> submitAssignment(
+    public ResponseEntity<SubmitAssessmentResponseDTO> submitAssignment(
             @PathVariable Long studentId,
             @PathVariable Long assignmentId,
-            @RequestParam("file") MultipartFile file) {
-        try {
-            assessmentService.submitAssignment(assignmentId, studentId, file);
-            return ResponseEntity.ok("Assignment submitted successfully.");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error reading file: " + e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error submitting assignment: " + e.getMessage());
-        }
+            @RequestParam("file") MultipartFile file) throws IOException {
+        SubmitAssessmentResponseDTO responseDTO = assessmentService.submitAssignment(assignmentId, studentId, file);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("notifications/{id}")
@@ -107,16 +105,16 @@ public class StudentController {
 
     @GetMapping("/submission/{submissionId}/{id}")
     @JsonView(Views.Detailed.class)
-    public ResponseEntity<Submission> getSubmission(
+    public ResponseEntity<BaseSubmission> getSubmission(
             @PathVariable Long id,
             @PathVariable Long submissionId) {
-        Submission submission = studentService.viewSubmission(submissionId, id);
+        BaseSubmission submission = studentService.viewSubmission(submissionId, id);
         return ResponseEntity.ok(submission);
     }
 
     @GetMapping("/submission/{id}")
     @JsonView(Views.Detailed.class)
-    public ResponseEntity<List<Submission>> getSubmissions(
+    public ResponseEntity<List<BaseSubmission>> getSubmissions(
             @PathVariable Long id) {
         return ResponseEntity.ok(studentService.getSubmissions(id));
     }

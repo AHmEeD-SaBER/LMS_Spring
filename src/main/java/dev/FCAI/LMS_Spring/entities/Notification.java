@@ -45,4 +45,13 @@ public class Notification {
     )
     @JsonView(Views.Detailed.class)
     private List<Student> students = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "instructor_notification",
+            joinColumns = @JoinColumn(name = "notification_id"),
+            inverseJoinColumns = @JoinColumn(name = "instructor_id")
+    )
+    @JsonView(Views.Detailed.class)
+    private List<Instructor> instructors = new ArrayList<>();
 }

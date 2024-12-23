@@ -1,174 +1,257 @@
 package dev.FCAI.LMS_Spring.service;
 
+import dev.FCAI.LMS_Spring.dto.*;
+import dev.FCAI.LMS_Spring.dto.request.*;
+import dev.FCAI.LMS_Spring.dto.response.*;
 import dev.FCAI.LMS_Spring.entities.*;
 import dev.FCAI.LMS_Spring.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class InstructorService {
+
     @Autowired
     private InstructorRepository instructorRepository;
+
     @Autowired
     private CourseRepository courseRepository;
+
     @Autowired
     private AssessmentRepository assessmentRepository;
+
+    @Autowired
+    private QuestionRepository questionRepository;
+
     @Autowired
     private LessonRepository lessonRepository;
-    @Autowired
-    private NotificationsService notificationPublisher;
-    @Autowired
-    private SubmissionRepository submissionRepository;
-    @Autowired
-    private StudentRepository studentRepository;
 
     @Transactional
-    public Course createCourse(Course course, Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId)
-                .orElseThrow(() -> new RuntimeException("Instructor not found"));
-        instructor.getCreatedCourses().add(course);
+    public CourseResponseDTO createCourse(CourseRequestDTO courseRequestDTO) {
+        // Validate input
+        if (courseRequestDTO == null) {
+            throw new IllegalArgumentException("Course data must not be null.");
+        }
+
+        if (courseRequestDTO.getInstructorId() == null) {
+            throw new IllegalArgumentException("Instructor ID is required.");
+        }
+
+        Instructor instructor = instructorRepository.findById(courseRequestDTO.getInstructorId())
+                .orElseThrow(() -> new IllegalArgumentException("Instructor not found with ID: " + courseRequestDTO.getInstructorId()));
+
+        Course course = new Course();
+        course.setTitle(courseRequestDTO.getTitle());
+        course.setDescription(courseRequestDTO.getDescription());
         course.setInstructor(instructor);
-        return courseRepository.save(course);
+
+        courseRepository.save(course);
+
+        return mapToCourseResponseDTO(course);
     }
 
     @Transactional
-    public Assessment createAssessment(Assessment assessment, Long courseId, Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId)
-                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+    public CourseResponseDTO updateCourse(Long courseId, CourseRequestDTO courseRequestDTO) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Course not found with ID: " + courseId));
 
-        if (!instructor.getCreatedCourses().contains(course)) {
-            throw new RuntimeException("Instructor does not own the course");
+        if (courseRequestDTO.getTitle() != null) {
+            course.setTitle(courseRequestDTO.getTitle());
         }
-
-        assessment.setCourse(course);
-        course.getAssessments().add(assessment);
-
-        // Save the assessment first
-        Assessment savedAssessment = assessmentRepository.save(assessment);
-
-        // Save the questions associated with the assessment
-        for (Question question : savedAssessment.getQuestions()) {
-            question.setAssessment(savedAssessment);
-        }
-
-        List<Student> enrolledStudents = course.getEnrolledStudents();
-        for (Student student : enrolledStudents) {
-            notificationPublisher.notifyStudent(student,
-                    "New Assessment Published: " + course.getTitle() + " - " + assessment.getTitle());
+        if (courseRequestDTO.getDescription() != null) {
+            course.setDescription(courseRequestDTO.getDescription());
         }
 
         courseRepository.save(course);
-        return savedAssessment;
+
+        return mapToCourseResponseDTO(course);
     }
 
+    public CourseResponseDTO getCourse(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found with ID: " + courseId));
+
+        return mapToCourseResponseDTO(course);
+    }
+
+    public List<CourseResponseDTO> getCoursesByInstructor(Long instructorId) {
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new IllegalArgumentException("Instructor not found with ID: " + instructorId));
+
+        List<Course> courses = instructor.getCreatedCourses();
+
+        return courses.stream()
+                .map(this::mapToCourseResponseDTO)
+                .collect(Collectors.toList());
+    }
 
     @Transactional
-    public Lesson createLesson(Lesson lesson, Long courseId, Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId)
-                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+    public void deleteCourse(Long courseId) {
+        courseRepository.deleteById(courseId);
+    }
 
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-
-        if (!instructor.getCreatedCourses().contains(course)) {
-            throw new RuntimeException("Instructor does not own this course");
+    @Transactional
+    public LessonResponseDTO createLesson(LessonRequestDTO lessonRequestDTO) {
+        if (lessonRequestDTO == null || lessonRequestDTO.getCourseId() == null) {
+            throw new IllegalArgumentException("Lesson data and course ID must not be null.");
         }
 
+        Course course = courseRepository.findById(lessonRequestDTO.getCourseId())
+                .orElseThrow(() -> new IllegalArgumentException("Course not found with ID: " + lessonRequestDTO.getCourseId()));
+
+        Lesson lesson = new Lesson();
+        lesson.setTitle(lessonRequestDTO.getTitle());
         lesson.setCourse(course);
-        course.getLessons().add(lesson);
-
-        List<Student> enrolledStudents = course.getEnrolledStudents();
-        for (Student student : enrolledStudents) {
-            notificationPublisher.notifyStudent(student,
-                    "New Lesson Added: " + course.getTitle() + " - " + lesson.getTitle());
-        }
 
         lessonRepository.save(lesson);
-        return lesson;
+
+        return mapToLessonResponseDTO(lesson);
     }
 
     @Transactional
-    public List<Course> viewAllCourses(Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId)
-                .orElseThrow(() -> new RuntimeException("Instructor not found"));
-        return instructor.getCreatedCourses();
-    }
-
-    @Transactional
-    public Course updateCourse(Course course, Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId)
-                .orElseThrow(() -> new RuntimeException("Instructor not found"));
-        if (!instructor.getCreatedCourses().contains(course)) {
-            course.setInstructor(instructor);
-            return courseRepository.save(course);
+    public AssessmentResponseDTO createAssessment(AssessmentRequestDTO assessmentDTO) {
+        if (assessmentDTO == null || assessmentDTO.getCourseId() == null) {
+            throw new IllegalArgumentException("Assessment data and course ID must not be null.");
         }
-        throw new RuntimeException("Instructor does not own this course");
+
+        Course course = courseRepository.findById(assessmentDTO.getCourseId())
+                .orElseThrow(() -> new IllegalArgumentException("Course not found with ID: " + assessmentDTO.getCourseId()));
+
+        Assessment assessment;
+
+        switch (assessmentDTO.getType().toUpperCase()) {
+            case "QUIZ":
+                if (!(assessmentDTO instanceof QuizRequestDTO)) {
+                    throw new IllegalArgumentException("Invalid data for quiz.");
+                }
+                QuizRequestDTO quizDTO = (QuizRequestDTO) assessmentDTO;
+                Quiz quiz = new Quiz();
+                quiz.setTitle(quizDTO.getTitle());
+                quiz.setGrade(quizDTO.getGrade());
+                quiz.setNumQuestions(quizDTO.getNumQuestions());
+                quiz.setCourse(course);
+                assessment = quiz;
+                break;
+            case "ASSIGNMENT":
+                Assignment assignment = new Assignment();
+                assignment.setTitle(assessmentDTO.getTitle());
+                assignment.setGrade(assessmentDTO.getGrade());
+                assignment.setCourse(course);
+                // Set other assignment-specific fields
+                assessment = assignment;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid assessment type: " + assessmentDTO.getType());
+        }
+
+        assessmentRepository.save(assessment);
+
+        return mapToAssessmentResponseDTO(assessment);
     }
 
     @Transactional
-    public void deleteCourse(Long courseId, Long instructorId) {
-        Instructor instructor = instructorRepository.findById(instructorId)
-                .orElseThrow(() -> new RuntimeException("Instructor not found"));
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-        if (instructor.getCreatedCourses().contains(course)) {
-            courseRepository.delete(course);
+    public QuestionResponseDTO addQuestionToQuiz(Long quizId, QuestionRequestDTO questionDTO) {
+        if (questionDTO == null) {
+            throw new IllegalArgumentException("Question data must not be null.");
+        }
+
+        Quiz quiz = (Quiz) assessmentRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found with ID: " + quizId));
+
+        Question question = null;
+
+        switch (questionDTO.getQuestionType().toUpperCase()) {
+            case "MCQ":
+                if (!(questionDTO instanceof MCQRequestDTO)) {
+                    throw new IllegalArgumentException("Invalid data for MCQ question.");
+                }
+                MCQRequestDTO mcqDTO = (MCQRequestDTO) questionDTO;
+                MCQ mcq = new MCQ();
+                mcq.setQuestionText(mcqDTO.getQuestionText());
+                mcq.setGrade(mcqDTO.getGrade());
+                mcq.setCorrectAnswer(mcqDTO.getCorrectAnswer());
+                mcq.setOptions(mcqDTO.getOptions());
+                mcq.setQuiz(quiz);
+                question = mcq;
+                break;
+            case "TRUE_FALSE":
+                // Handle TrueFalse question
+                break;
+            case "SHORT_ANSWER":
+                // Handle ShortAnswer question
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid question type: " + questionDTO.getQuestionType());
+        }
+
+        questionRepository.save(question);
+
+        return mapToQuestionResponseDTO(question);
+    }
+
+    // Utility methods for mapping entities to response DTOs
+    private CourseResponseDTO mapToCourseResponseDTO(Course course) {
+        CourseResponseDTO dto = new CourseResponseDTO();
+        dto.setId(course.getId());
+        dto.setTitle(course.getTitle());
+        dto.setDescription(course.getDescription());
+        dto.setInstructorId(course.getInstructor().getId());
+        return dto;
+    }
+
+    private LessonResponseDTO mapToLessonResponseDTO(Lesson lesson) {
+        LessonResponseDTO dto = new LessonResponseDTO();
+        dto.setId(lesson.getId());
+        dto.setTitle(lesson.getTitle());
+        dto.setCourseId(lesson.getCourse().getId());
+        return dto;
+    }
+
+    private AssessmentResponseDTO mapToAssessmentResponseDTO(Assessment assessment) {
+        if (assessment instanceof Quiz) {
+            Quiz quiz = (Quiz) assessment;
+            QuizResponseDTO quizDTO = new QuizResponseDTO();
+            quizDTO.setId(quiz.getId());
+            quizDTO.setTitle(quiz.getTitle());
+            quizDTO.setGrade(quiz.getGrade());
+            quizDTO.setType("QUIZ");
+            quizDTO.setCourseId(quiz.getCourse().getId());
+            quizDTO.setNumQuestions(quiz.getNumQuestions());
+            return quizDTO;
+        } else if (assessment instanceof Assignment) {
+            Assignment assignment = (Assignment) assessment;
+            AssignmentResponseDTO assignmentDTO = new AssignmentResponseDTO();
+            assignmentDTO.setId(assignment.getId());
+            assignmentDTO.setTitle(assignment.getTitle());
+            assignmentDTO.setGrade(assignment.getGrade());
+            assignmentDTO.setType("ASSIGNMENT");
+            assignmentDTO.setCourseId(assignment.getCourse().getId());
+            // Set additional fields if any
+            return assignmentDTO;
         } else {
-            throw new RuntimeException("Instructor does not own this course");
+            throw new IllegalArgumentException("Unknown assessment type.");
         }
     }
 
-    @Transactional
-    public Boolean markStudentAttendance(Long lessonId, Long studentId) {
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new RuntimeException("Lesson with ID " + lessonId + " not found"));
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student with ID " + studentId + " not found"));
-        Course course = lesson.getCourse();
-        if (!course.getEnrolledStudents().contains(student)) {
-            throw new RuntimeException("Student " + studentId + " is not enrolled in the course for this lesson.");
+    private QuestionResponseDTO mapToQuestionResponseDTO(Question question) {
+        if (question instanceof MCQ) {
+            MCQ mcq = (MCQ) question;
+            MCQResponseDTO mcqDTO = new MCQResponseDTO();
+            mcqDTO.setId(mcq.getId());
+            mcqDTO.setQuestionText(mcq.getQuestionText());
+            mcqDTO.setGrade(mcq.getGrade());
+            mcqDTO.setQuestionType("MCQ");
+            mcqDTO.setOptions(mcq.getOptions());
+            return mcqDTO;
         }
-        if (!lesson.getAttendedStudents().contains(student)) {
-            lesson.getAttendedStudents().add(student);
-            return true;
+        // Handle other question types
+        else {
+            throw new IllegalArgumentException("Unknown question type.");
         }
-        return false;
     }
-
-    @Transactional
-    public Lesson uploadLessonMaterial(Long instructorId, Long lessonId, MultipartFile file) throws IOException {
-        Instructor instructor = instructorRepository.findById(instructorId)
-                .orElseThrow(() -> new RuntimeException("Instructor not found"));
-
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new RuntimeException("Lesson not found"));
-
-        Course course = lesson.getCourse();
-
-        if (!instructor.getCreatedCourses().contains(course)) {
-            throw new RuntimeException("Instructor does not own this course");
-        }
-
-        // Create a new LessonMaterial
-        LessonMaterial lessonMaterial = new LessonMaterial();
-
-        // Include lesson ID in filename
-        lessonMaterial.setFilename("lesson_" + lessonId + "_" + file.getOriginalFilename());
-        lessonMaterial.setData(file.getBytes());
-        lessonMaterial.setLesson(lesson);
-
-        lesson.getMaterials().add(lessonMaterial);
-
-        lessonRepository.save(lesson);
-
-        return lesson;
-    }
-
 }

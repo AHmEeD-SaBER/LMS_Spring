@@ -1,86 +1,68 @@
+// InstructorController.java
 package dev.FCAI.LMS_Spring.controllers;
 
-import com.fasterxml.jackson.annotation.JsonView;
-import dev.FCAI.LMS_Spring.Views;
-import dev.FCAI.LMS_Spring.entities.Assessment;
-import dev.FCAI.LMS_Spring.entities.Course;
-import dev.FCAI.LMS_Spring.entities.Lesson;
+import dev.FCAI.LMS_Spring.dto.request.*;
+import dev.FCAI.LMS_Spring.dto.response.*;
 import dev.FCAI.LMS_Spring.service.InstructorService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/instructor")
 public class InstructorController {
+
     @Autowired
     private InstructorService instructorService;
-    @GetMapping("/")
-    public String greet() {
-        return "Hello instructor";
-    }
+
     @PostMapping("/course")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<Course> createCourse(@RequestBody Course course, @RequestParam Long instructorId) {
-        return ResponseEntity.ok(instructorService.createCourse(course, instructorId));
+    public ResponseEntity<CourseResponseDTO> createCourse(@RequestBody CourseRequestDTO courseRequestDTO) {
+        CourseResponseDTO courseResponse = instructorService.createCourse(courseRequestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(courseResponse);
+    }
+
+    @PutMapping("/course/{courseId}")
+    public ResponseEntity<CourseResponseDTO> updateCourse(@PathVariable Long courseId, @RequestBody CourseRequestDTO courseRequestDTO) {
+        CourseResponseDTO courseResponse = instructorService.updateCourse(courseId, courseRequestDTO);
+        return ResponseEntity.ok(courseResponse);
+    }
+
+    @GetMapping("/course/{courseId}")
+    public ResponseEntity<CourseResponseDTO> getCourse(@PathVariable Long courseId) {
+        CourseResponseDTO courseResponse = instructorService.getCourse(courseId);
+        return ResponseEntity.ok(courseResponse);
+    }
+
+    @GetMapping("/courses/{instructorId}")
+    public ResponseEntity<List<CourseResponseDTO>> getCoursesByInstructor(@PathVariable Long instructorId) {
+        List<CourseResponseDTO> courses = instructorService.getCoursesByInstructor(instructorId);
+        return ResponseEntity.ok(courses);
     }
 
     @DeleteMapping("/course/{courseId}")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<Void> deleteCourse(@PathVariable Long courseId, @RequestParam Long instructorId) {
-        instructorService.deleteCourse(courseId, instructorId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteCourse(@PathVariable Long courseId) {
+        instructorService.deleteCourse(courseId);
+        return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/course")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<Course> updateCourse(@RequestBody Course course, @RequestParam Long instructorId) {
-        return ResponseEntity.ok(instructorService.updateCourse(course, instructorId));
+    @PostMapping("/lesson")
+    public ResponseEntity<LessonResponseDTO> createLesson(@RequestBody LessonRequestDTO lessonRequestDTO) {
+        LessonResponseDTO lessonResponse = instructorService.createLesson(lessonRequestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(lessonResponse);
     }
 
     @PostMapping("/assessment")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<Assessment> createAssessment(@RequestBody Assessment assessment, @RequestParam Long courseId, @RequestParam Long instructorId) {
-        return ResponseEntity.ok(instructorService.createAssessment(assessment, courseId, instructorId));
+    public ResponseEntity<AssessmentResponseDTO> createAssessment(@RequestBody AssessmentRequestDTO assessmentDTO) {
+        AssessmentResponseDTO assessmentResponse = instructorService.createAssessment(assessmentDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(assessmentResponse);
     }
 
-    @GetMapping("/courses")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<List<Course>> viewAllCourses(@RequestParam Long instructorId) {
-        return ResponseEntity.ok(instructorService.viewAllCourses(instructorId));
+    @PostMapping("/quiz/{quizId}/question")
+    public ResponseEntity<QuestionResponseDTO> addQuestionToQuiz(@PathVariable Long quizId, @RequestBody QuestionRequestDTO questionDTO) {
+        QuestionResponseDTO questionResponse = instructorService.addQuestionToQuiz(quizId, questionDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(questionResponse);
     }
 
-    @PostMapping("/course/{courseId}/lesson/{instructorId}")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<Lesson> createLesson(@RequestBody Lesson lesson, @PathVariable Long courseId, @PathVariable Long instructorId) {
-        Lesson createdLesson = instructorService.createLesson(lesson, courseId, instructorId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdLesson);
-    }
-
-    @PostMapping("/{instructorId}/lessons/{lessonId}/materials/upload")
-    public ResponseEntity<String> uploadLessonMaterial(
-            @PathVariable Long instructorId,
-            @PathVariable Long lessonId,
-            @RequestParam("file") MultipartFile file) {
-        try {
-            instructorService.uploadLessonMaterial(instructorId, lessonId, file);
-            return ResponseEntity.ok("File uploaded successfully.");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error reading file: " + e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error uploading file: " + e.getMessage());
-        }
-    }
-
-
-    @PostMapping("/lesson/{lessonId}/attendance/{studentId}")
-    @JsonView(Views.Summary.class)
-    public ResponseEntity<Boolean> markStudentAttendance(@PathVariable Long lessonId, @PathVariable Long studentId) {
-        return ResponseEntity.ok(instructorService.markStudentAttendance(lessonId, studentId));
-    }
 }
-

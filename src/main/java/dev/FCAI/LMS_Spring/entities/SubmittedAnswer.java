@@ -6,7 +6,6 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class SubmittedAnswer {
@@ -24,5 +23,5 @@ public class SubmittedAnswer {
 
     @ManyToOne
     @JoinColumn(name = "submission_id")
-    private Submission submission;
+    private QuizSubmission submission;
 }

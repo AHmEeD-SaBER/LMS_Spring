@@ -44,14 +44,6 @@ public abstract class Assessment {
     @JsonView(Views.Summary.class)
     private Double grade;
 
-    // New relationship to questions
-    @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonView(Views.Summary.class)
-    private List<Question> questions = new ArrayList<>();
-
-    // Relationship to submissions
-    @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Submission> submissions = new ArrayList<>();
 
     @Transient
     @JsonProperty("type")

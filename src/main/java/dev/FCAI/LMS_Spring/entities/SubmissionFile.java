@@ -3,9 +3,9 @@ package dev.FCAI.LMS_Spring.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+@Entity
 @Getter
 @Setter
-@Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,5 +22,5 @@ public class SubmissionFile {
 
     @ManyToOne
     @JoinColumn(name = "submission_id", nullable = false)
-    private Submission submission;
+    private AssignmentSubmission submission;
 }

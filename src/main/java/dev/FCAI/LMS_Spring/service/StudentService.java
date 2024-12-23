@@ -17,7 +17,7 @@ public class StudentService {
     @Autowired
     private NotificationsService notificationService;
     @Autowired
-    private SubmissionRepository submissionRepository;
+    private BaseSubmissionRepository submissionRepository;
     @Autowired
     private LessonRepository lessonRepository;
     @Autowired
@@ -38,9 +38,14 @@ public class StudentService {
 
         student.getEnrolledCourses().add(course);
         course.getEnrolledStudents().add(student);
+        Instructor instructor = course.getInstructor();
 
         notificationService.notifyStudent(student,
                 "You have successfully enrolled in course: " + course.getTitle());
+
+        notificationService.notifyInstructor(instructor,
+                "Student " + student.getFirstName() + " " + student.getLastName() +
+                        " has enrolled in your course: " + course.getTitle());
 
         studentRepository.save(student);
         courseRepository.save(course);
@@ -81,8 +86,8 @@ public class StudentService {
         return student.getNotifications();
     }
 
-    public Submission viewSubmission(Long submissionId, Long studentId) {
-        Submission submission = submissionRepository.findById(submissionId)
+    public BaseSubmission viewSubmission(Long submissionId, Long studentId) {
+        BaseSubmission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Submission not found"));
         if (!submission.getStudent().getId().equals(studentId)) {
             throw new RuntimeException("Not authorized to view this submission");
@@ -93,7 +98,7 @@ public class StudentService {
         return submission;
     }
 
-    public List<Submission> getSubmissions(Long studentId){
+    public List<BaseSubmission> getSubmissions(Long studentId){
         Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
         return student.getSubmissions();
     }
