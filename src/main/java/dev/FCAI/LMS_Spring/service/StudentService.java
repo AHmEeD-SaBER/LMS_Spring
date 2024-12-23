@@ -41,6 +41,8 @@ public class StudentService {
 
         notificationService.notifyStudent(student,
                 "You have successfully enrolled in course: " + course.getTitle());
+        notificationService.notifyInstructor(course.getInstructor(),
+                "Student " + student.getFirstName() + " " + student.getLastName() + " has enrolled in your course: " + course.getTitle());
 
         studentRepository.save(student);
         courseRepository.save(course);
@@ -71,7 +73,6 @@ public class StudentService {
         if (!lessonMaterial.getLesson().getId().equals(lessonId)) {
             throw new RuntimeException("Lesson material does not belong to the specified lesson");
         }
-        // Additional checks to ensure the student is enrolled in the course
         return lessonMaterial;
     }
 

@@ -1,8 +1,11 @@
 package dev.FCAI.LMS_Spring.service;
+import dev.FCAI.LMS_Spring.entities.Instructor;
 import dev.FCAI.LMS_Spring.entities.Notification;
 import dev.FCAI.LMS_Spring.entities.Student;
+import dev.FCAI.LMS_Spring.repository.InstructorRepository;
 import dev.FCAI.LMS_Spring.repository.NotificationRepository;
 import dev.FCAI.LMS_Spring.repository.StudentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,21 +14,15 @@ import java.util.List;
 @Service
 public class NotificationsService {
 
-    private final NotificationRepository notificationRepository;
-    private final StudentRepository studentRepository;
+    @Autowired
+   NotificationRepository notificationRepository;
 
-    public NotificationsService(NotificationRepository notificationRepository, StudentRepository studentRepository) {
-        this.notificationRepository = notificationRepository;
-        this.studentRepository = studentRepository;
-    }
+    @Autowired
+   StudentRepository studentRepository;
 
-    /**
-     * Create and save notifications for a list of students.
-     * This method can be reused to generate notifications for any action/event.
-     *
-     * @param students List of students to notify
-     * @param message  The message to send
-     */
+    @Autowired
+    InstructorRepository instructorRepository;
+
     @Transactional
     public void notifyStudents(List<Student> students, String message) {
         Notification notification = new Notification();
@@ -43,12 +40,30 @@ public class NotificationsService {
         });
     }
 
-    /**
-     * Notify a single student.
-     *
-     * @param student The student to notify
-     * @param message The message to send
-     */
+
+    @Transactional
+    public void notifyInstructor(Instructor instructor, String message) {
+        notifyInstructors(List.of(instructor), message);
+    }
+
+    @Transactional
+    public void notifyInstructors(List<Instructor> instructors, String message) {
+        Notification notification = new Notification();
+        notification.setMessage(message);
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setRead(false);
+        notification.getInstructors().addAll(instructors);
+
+        notificationRepository.save(notification);
+
+        // Add the notification to each student and update their notifications
+        instructors.forEach(student -> {
+            student.getNotifications().add(notification);
+            instructorRepository.save(student);
+        });
+    }
+
+
     @Transactional
     public void notifyStudent(Student student, String message) {
         notifyStudents(List.of(student), message);
