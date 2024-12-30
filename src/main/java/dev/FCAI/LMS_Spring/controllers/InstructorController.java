@@ -2,9 +2,7 @@ package dev.FCAI.LMS_Spring.controllers;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import dev.FCAI.LMS_Spring.Views;
-import dev.FCAI.LMS_Spring.entities.Assessment;
-import dev.FCAI.LMS_Spring.entities.Course;
-import dev.FCAI.LMS_Spring.entities.Lesson;
+import dev.FCAI.LMS_Spring.entities.*;
 import dev.FCAI.LMS_Spring.service.InstructorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -81,6 +79,18 @@ public class InstructorController {
     @JsonView(Views.Summary.class)
     public ResponseEntity<Boolean> markStudentAttendance(@PathVariable Long lessonId, @PathVariable Long studentId) {
         return ResponseEntity.ok(instructorService.markStudentAttendance(lessonId, studentId));
+    }
+
+    @PostMapping("/assessment/{submissionId}/grade")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<AssignmentSubmission> gradeAssessment(@PathVariable Long submissionId, @RequestParam Double grade, @RequestParam String feedback) {
+        return ResponseEntity.ok(instructorService.gradeAssignment(submissionId, grade, feedback));
+    }
+
+    @GetMapping("/notifications/{instructorId}")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<List<Notification>> getNotifications(@PathVariable Long instructorId) {
+        return ResponseEntity.ok(instructorService.getNotifications(instructorId));
     }
 }
 

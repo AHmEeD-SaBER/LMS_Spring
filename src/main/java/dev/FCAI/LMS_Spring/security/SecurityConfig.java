@@ -36,9 +36,9 @@ public class SecurityConfig {
                 .cors(customizer -> customizer.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/instructor/**").hasRole("INSTRUCTOR")
-                        .requestMatchers("/student/**").hasRole("STUDENT")
+                        .requestMatchers("/admin/**").permitAll()
+                        .requestMatchers("/instructor/**").permitAll()
+                        .requestMatchers("/student/**").permitAll()
                         .anyRequest().permitAll()
                 ).httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

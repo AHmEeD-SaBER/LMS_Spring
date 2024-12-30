@@ -2,8 +2,6 @@ package dev.FCAI.LMS_Spring;
 
 import dev.FCAI.LMS_Spring.entities.*;
 import dev.FCAI.LMS_Spring.repository.*;
-import dev.FCAI.LMS_Spring.service.AssessmentService;
-import dev.FCAI.LMS_Spring.service.NotificationsService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;

@@ -1,0 +1,275 @@
+{
+	"info": {
+		"_postman_id": "b097b6ba-71da-47b0-8252-dd546d1ebe07",
+		"name": "LMS Student API",
+		"description": "Collection for Student Controller endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40389373"
+	},
+	"item": [
+		{
+			"name": "Greet Student",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Enrolled Courses",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/courses/2",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"courses",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Specific Enrolled Course",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/course/1/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"course",
+						"1",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Lesson",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/course/lesson/1/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"course",
+						"lesson",
+						"1",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download Lesson Material",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/lessons/1/materials/1/download",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"lessons",
+						"1",
+						"materials",
+						"1",
+						"download"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Enroll in Course",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/enroll/2/1/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"enroll",
+						"2",
+						"1",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start Quiz",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/assessment/2/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"assessment",
+						"2",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Submit Quiz",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"8\": \"Set\",\n    \"6\": \"class\",\n    \"2\": \"_userName\",\n    \"9\":\"false\",\n    \"1\":\"null\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/student/submitQuiz/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"submitQuiz",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Submit Assignment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "files",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/student/submitAssignment/1/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"submitAssignment",
+						"1",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Notifications",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/notifications/2",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"notifications",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Course Grades",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/grades/1/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"grades",
+						"1",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Assessment Grade",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/student/grades/2/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student",
+						"grades",
+						"2",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080"
+		}
+	]
+}

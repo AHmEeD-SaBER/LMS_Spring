@@ -18,6 +18,18 @@ public class AdminService {
     @Autowired
     private AdminRepository adminRepository;
 
+    public boolean hasUsers() {
+        return userRepository.count() > 0;
+    }
+
+    public User createFirstAdmin(User user) {
+        if (hasUsers()) {
+            throw new IllegalStateException("Cannot create first admin: Users already exist");
+        }
+        // Additional validation and processing
+        return userRepository.save(user);
+    }
+
     @Transactional
     public User createUser(User user) {
         if (user == null) {

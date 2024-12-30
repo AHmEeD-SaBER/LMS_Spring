@@ -21,9 +21,6 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
-
-    @Autowired
-    private AssessmentService assessmentService;
     @GetMapping("/")
     public String greet() {
         return "Hello student";
@@ -68,35 +65,27 @@ public class StudentController {
         return ResponseEntity.ok("Enrolled successfully");
     }
 
-    @GetMapping("/assessment/{id}/{assessmentId}")
+    @GetMapping("/assessment/{id}/{quizId}")
     @JsonView(Views.Summary.class)
-    public ResponseEntity<Assessment> getAssessment(@PathVariable Long id, @PathVariable Long assessmentId){
-        return ResponseEntity.ok(assessmentService.getAssessmentForStudent(assessmentId, id));
+    public ResponseEntity<List<Question>> startQuiz(@PathVariable Long id, @PathVariable Long quizId){
+        return ResponseEntity.ok(studentService.startQuiz(quizId, id));
     }
 
-    @PostMapping("/submit/{assessmentId}/{id}")
+    @PostMapping("/submitQuiz/{submissionId}")
     @JsonView(Views.Summary.class)
-    public ResponseEntity<String> submitAssessment(
-            @PathVariable Long id,
-            @PathVariable Long assessmentId,
+    public ResponseEntity<Boolean> submitQuiz(
+            @PathVariable Long submissionId,
             @RequestBody Map<Long, String> answers) {
-        assessmentService.submitAssessment(assessmentId, id, answers);
-        return ResponseEntity.ok("Assessment submitted successfully");
+        return ResponseEntity.ok(studentService.submitQuiz(submissionId, answers));
     }
 
-    @PostMapping("/{studentId}/assignments/{assignmentId}/submit")
+    @PostMapping("/submitAssignment/{studentId}/{assignmentId}")
     public ResponseEntity<String> submitAssignment(
             @PathVariable Long studentId,
             @PathVariable Long assignmentId,
-            @RequestParam("file") MultipartFile file) {
-        try {
-            assessmentService.submitAssignment(assignmentId, studentId, file);
-            return ResponseEntity.ok("Assignment submitted successfully.");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error reading file: " + e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error submitting assignment: " + e.getMessage());
-        }
+            @RequestParam("files") List<MultipartFile> files) {
+        studentService.submitAssignment(assignmentId, studentId, files);
+        return ResponseEntity.ok("Assignment submitted successfully.");
     }
 
     @GetMapping("notifications/{id}")
@@ -105,21 +94,16 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getNotifications(id));
     }
 
-
-    @GetMapping("/submission/{submissionId}/{id}")
-    @JsonView(Views.Detailed.class)
-    public ResponseEntity<Submission> getSubmission(
-            @PathVariable Long id,
-            @PathVariable Long submissionId) {
-        Submission submission = studentService.viewSubmission(submissionId, id);
-        return ResponseEntity.ok(submission);
+    @GetMapping("/grades/course/{studentId}/{courseId}")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<List<Submission>> getStudentCourseGrades(@PathVariable Long studentId, @PathVariable Long courseId) {
+        return ResponseEntity.ok(studentService.getStudentCourseGrades(studentId, courseId));
     }
 
-    @GetMapping("/submission/{id}")
-    @JsonView(Views.Detailed.class)
-    public ResponseEntity<List<Submission>> getSubmissions(
-            @PathVariable Long id) {
-        return ResponseEntity.ok(studentService.getSubmissions(id));
+    @GetMapping("/grades/{studentId}/{assessmentId}")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<Submission> getAssessmentGrade(@PathVariable Long studentId, @PathVariable Long assessmentId) {
+        return ResponseEntity.ok(studentService.getAssessmentGrade(studentId, assessmentId));
     }
 
 

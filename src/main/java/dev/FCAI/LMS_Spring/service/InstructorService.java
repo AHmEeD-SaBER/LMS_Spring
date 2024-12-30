@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class InstructorService {
@@ -170,5 +171,49 @@ public class InstructorService {
 
         return lesson;
     }
+
+    public AssignmentSubmission gradeAssignment(Long submissionId, double grade, String feedback) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new RuntimeException("Submission not found"));
+
+        if (!(submission instanceof AssignmentSubmission)) {
+            throw new RuntimeException("Submission is not an assignment submission");
+        }
+        Assignment assignment = (Assignment) submission.getAssessment();
+        if (assignment.getGrade() != null && (grade < 0 || grade > assignment.getGrade())) {
+            throw new RuntimeException("Grade must be between 0 and " + assignment.getGrade());
+        }
+
+
+        AssignmentSubmission assignmentSubmission = (AssignmentSubmission) submission;
+        assignmentSubmission.setTotalScore(grade);
+        assignmentSubmission.setFeedback(feedback);
+        assignmentSubmission.setGraded(true);
+
+        List<Student> enrolledStudents = assignmentSubmission.getAssessment().getCourse().getEnrolledStudents();
+        for (Student student : enrolledStudents) {
+            notificationPublisher.notifyStudent(student,
+                    "Assignment Graded: " + assignmentSubmission.getAssessment().getCourse().getTitle() + " - " + assignmentSubmission.getAssessment().getTitle());
+        }
+        AssignmentSubmission savedSubmission = (AssignmentSubmission) submissionRepository.save(assignmentSubmission);
+        Student student = savedSubmission.getStudent();
+        student.getSubmissions().add(savedSubmission);
+        studentRepository.save(student);
+        return savedSubmission;
+    }
+
+    public List<Submission> getAssessmentSubmissions(Long assessmentId) {
+        Assessment assessment = assessmentRepository.findById(assessmentId)
+                .orElseThrow(() -> new RuntimeException("Assessment not found"));
+
+        return submissionRepository.findByAssessment(assessment);
+    }
+
+    public List<Notification> getNotifications(Long instructorId) {
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+        return instructor.getNotifications();
+    }
+
 
 }

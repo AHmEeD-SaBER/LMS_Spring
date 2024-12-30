@@ -40,6 +40,7 @@ public abstract class User {
     @ManyToOne
     @JoinColumn(name = "admin_id", nullable = true)
     @JsonView(Views.Summary.class)
+    @JsonIdentityReference(alwaysAsId = true)
     private Admin admin;
 
     @Column(name = "password",nullable = false)
