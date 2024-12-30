@@ -24,6 +24,7 @@ import lombok.*;
 public abstract class Question {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonView(Views.Summary.class)
     private Long id;
 
     @JsonView(Views.Summary.class)

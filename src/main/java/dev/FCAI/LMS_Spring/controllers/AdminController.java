@@ -22,6 +22,29 @@ public class AdminController {
         return "Hello Admin";
     }
 
+    @PostMapping("/first-admin")
+    @JsonView(Views.Summary.class)
+    public ResponseEntity<?> createFirstAdmin(@RequestBody User user) {
+        try {
+            // Check if there are any users in the database
+            if (adminService.hasUsers()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Cannot create first admin: Users already exist");
+            }
+
+            if (!"ADMIN".equals(user.getRole())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("First user must be an admin");
+            }
+
+            User createdAdmin = adminService.createFirstAdmin(user);
+            return ResponseEntity.ok(createdAdmin);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @PostMapping("/user")
     @JsonView(Views.Summary.class)
     public ResponseEntity<?> createUser(@RequestBody User user) {

@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "user_role")
-public abstract class User {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonView(Views.Summary.class)
@@ -40,6 +40,7 @@ public abstract class User {
     @ManyToOne
     @JoinColumn(name = "admin_id", nullable = true)
     @JsonView(Views.Summary.class)
+    @JsonIdentityReference(alwaysAsId = true)
     private Admin admin;
 
     @Column(name = "password",nullable = false)

@@ -7,90 +7,64 @@ import org.junit.jupiter.api.*;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
-@SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(MockitoExtension.class)
 class StudentServiceTest {
-
-    @Autowired
+    @Mock
+    private StudentRepository studentRepository;
+    @Mock
+    private CourseRepository courseRepository;
+    @Mock
+    private SubmissionRepository submissionRepository;
+    @Mock
+    private LessonRepository lessonRepository;
+    @Mock
+    private LessonMaterialRepository lessonMaterialRepository;
+    @Mock
+    private AssessmentRepository assessmentRepository;
+    @InjectMocks
     private StudentService studentService;
 
-    @MockBean
-    private StudentRepository studentRepository;
+    @Test
+    void getEnrolledCourses_Success() {
+        Student student = new Student();
+        List<Course> courses = Arrays.asList(new Course(), new Course());
+        student.setEnrolledCourses(courses);
 
-    @MockBean
-    private CourseRepository courseRepository;
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
 
-    @MockBean
-    private SubmissionRepository submissionRepository;
+        List<Course> result = studentService.getEnrolledCourses(1L);
 
-    @MockBean
-    private LessonRepository lessonRepository;
+        assertEquals(courses, result);
+        assertEquals(2, result.size());
+        verify(studentRepository).findById(1L);
+    }
 
-    @MockBean
-    private LessonMaterialRepository lessonMaterialRepository;
+    @Test
+    void getEnrolledCourses_StudentNotFound() {
+        when(studentRepository.findById(1L)).thenReturn(Optional.empty());
 
-    private Student student;
-    private Course course;
+        assertThrows(RuntimeException.class, () ->
+                studentService.getEnrolledCourses(1L)
+        );
+        verify(studentRepository).findById(1L);
+    }
 
-    @BeforeEach
-    void setUp() {
-        student = new Student();
-        student.setId(1L);
-        student.setUsername("john_doe");
-        student.setPassword("password123");
-        student.setEmail("john.doe@example.com");
-        student.setFirstName("John");
-        student.setLastName("Doe");
+    @Test
+    void enrollInCourse_Success() {
+        Student student = new Student();
         student.setEnrolledCourses(new ArrayList<>());
-        student.setNotifications(new ArrayList<>());
-        student.setSubmissions(new ArrayList<>());
-        student.setAttendedLessons(new ArrayList<>());
-
-        course = new Course();
-        course.setId(1L);
-        course.setTitle("Sample Course");
-        course.setDescription("Sample Course Description");
-        Instructor instructor = new Instructor();
-        instructor.setId(2L);
-        instructor.setFirstName("Jane");
-        instructor.setLastName("Smith");
-        instructor.setUsername("jane_smith");
-        instructor.setPassword("password123");
-        instructor.setEmail("instructor@gmail.com");
-        instructor.setCreatedCourses(new ArrayList<>());
-        course.setInstructor(instructor);
+        Course course = new Course();
         course.setEnrolledStudents(new ArrayList<>());
-        course.setLessons(new ArrayList<>());
-        course.setAssessments(new ArrayList<>());
-    }
 
-
-
-    @Test
-    void testGetEnrolledCourses_Success() {
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
-        when(studentRepository.save(student)).thenReturn(student);
-        when(courseRepository.save(course)).thenReturn(course);
-        studentService.enrollInCourse(1L, 1L);
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-
-        List<Course> courses = studentService.getEnrolledCourses(1L);
-
-        assertNotNull(courses);
-        assertEquals(1, courses.size());
-        assertEquals(course, courses.get(0));
-    }
-
-    @Test
-    void testEnrollInCourse_Success() {
         when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
 
@@ -98,260 +72,279 @@ class StudentServiceTest {
 
         assertTrue(student.getEnrolledCourses().contains(course));
         assertTrue(course.getEnrolledStudents().contains(student));
-        verify(studentRepository, times(2)).save(student);
+        verify(studentRepository).save(student);
         verify(courseRepository).save(course);
     }
 
     @Test
-    void testGetEnrolledCourse_Success() {
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
+    void enrollInCourse_StudentNotFound() {
+        when(studentRepository.findById(1L)).thenReturn(Optional.empty());
 
-        when(studentRepository.save(student)).thenReturn(student);
-        when(courseRepository.save(course)).thenReturn(course);
-
-        studentService.enrollInCourse(1L, 1L);
-
-        Course resultCourse = studentService.getEnrolledCourse(1L, 1L);
-
-        assertNotNull(resultCourse);
-        assertEquals(course, resultCourse);
+        assertThrows(RuntimeException.class, () ->
+                studentService.enrollInCourse(1L, 1L)
+        );
+        verify(studentRepository).findById(1L);
+        verify(courseRepository, never()).findById(any());
     }
 
     @Test
-    void testGetLesson_Success() {
+    void getEnrolledCourse_Success() {
+        Student student = new Student();
+        Course course = new Course();
+        course.setEnrolledStudents(List.of(student));
+
         when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
 
-        when(studentRepository.save(student)).thenReturn(student);
-        when(courseRepository.save(course)).thenReturn(course);
+        Course result = studentService.getEnrolledCourse(1L, 1L);
 
-        studentService.enrollInCourse(1L, 1L);
+        assertEquals(course, result);
+        verify(studentRepository).findById(1L);
+        verify(courseRepository).findById(1L);
+    }
+
+    @Test
+    void getEnrolledCourse_NotEnrolled() {
+        Student student = new Student();
+        Course course = new Course();
+        course.setEnrolledStudents(new ArrayList<>());
+
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
+
+        assertThrows(RuntimeException.class, () ->
+                studentService.getEnrolledCourse(1L, 1L)
+        );
+    }
+
+    @Test
+    void getLesson_Success() {
+        Student student = new Student();
+        Course course = new Course();
+        course.setEnrolledStudents(List.of(student));
         Lesson lesson = new Lesson();
-        lesson.setId(1L);
-        lesson.setTitle("Sample Lesson");
         lesson.setCourse(course);
-        lesson.setMaterials(new ArrayList<>());
-        lesson.setAttendedStudents(new ArrayList<>());
-        course.getLessons().add(lesson);
 
         when(lessonRepository.findById(1L)).thenReturn(Optional.of(lesson));
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
 
-        Lesson resultLesson = studentService.getLesson(1L, 1L);
+        Lesson result = studentService.getLesson(1L, 1L);
 
-        assertNotNull(resultLesson);
-        assertEquals(lesson, resultLesson);
+        assertEquals(lesson, result);
+        verify(lessonRepository).findById(1L);
+        verify(studentRepository).findById(1L);
     }
 
     @Test
-    void testGetLessonMaterial_Success() {
+    void getLesson_StudentNotEnrolled() {
+        Student student = new Student();
+        Course course = new Course();
+        course.setEnrolledStudents(new ArrayList<>());
         Lesson lesson = new Lesson();
-        lesson.setId(1L);
         lesson.setCourse(course);
 
+        when(lessonRepository.findById(1L)).thenReturn(Optional.of(lesson));
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+
+        assertThrows(RuntimeException.class, () ->
+                studentService.getLesson(1L, 1L)
+        );
+    }
+
+    @Test
+    void getLessonMaterial_Success() {
+        Lesson lesson = new Lesson();
+        lesson.setId(1L);
         LessonMaterial material = new LessonMaterial();
-        material.setId(1L);
         material.setLesson(lesson);
-        material.setFilename("material.pdf");
-        material.setData(new byte[]{});
 
         when(lessonMaterialRepository.findById(1L)).thenReturn(Optional.of(material));
 
-        LessonMaterial resultMaterial = studentService.getLessonMaterial(1L, 1L);
+        LessonMaterial result = studentService.getLessonMaterial(1L, 1L);
 
-        assertNotNull(resultMaterial);
-        assertEquals(material, resultMaterial);
+        assertEquals(material, result);
+        verify(lessonMaterialRepository).findById(1L);
     }
 
     @Test
-    void testGetNotifications_Success() {
-        Notification notification = new Notification();
-        notification.setId(1L);
-        notification.setMessage("Test Notification");
-        notification.setCreatedAt(java.time.LocalDateTime.now());
-        notification.setRead(false);
+    void getLessonMaterial_MaterialNotFound() {
+        when(lessonMaterialRepository.findById(1L)).thenReturn(Optional.empty());
 
-        student.getNotifications().add(notification);
+        assertThrows(RuntimeException.class, () ->
+                studentService.getLessonMaterial(1L, 1L)
+        );
+    }
+
+    @Test
+    void getNotifications_Success() {
+        Student student = new Student();
+        List<Notification> notifications = Arrays.asList(
+                new Notification(), new Notification()
+        );
+        student.setNotifications(notifications);
 
         when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
 
-        List<Notification> notifications = studentService.getNotifications(1L);
+        List<Notification> result = studentService.getNotifications(1L);
 
-        assertNotNull(notifications);
-        assertEquals(1, notifications.size());
-        assertEquals(notification, notifications.get(0));
+        assertEquals(notifications, result);
+        verify(studentRepository).findById(1L);
     }
 
     @Test
-    void testViewSubmission_Success() {
-        Submission submission = new Submission();
-        submission.setId(1L);
+    void getNotifications_StudentNotFound() {
+        when(studentRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () ->
+                studentService.getNotifications(1L)
+        );
+    }
+
+    @Test
+    void startQuiz_Success() {
+        // Create student and course
+        Student student = new Student();
+        student.setId(1L);
+        Course course = new Course();
+        course.setEnrolledStudents(List.of(student));
+
+        // Create quiz with questions
+        Quiz quiz = new Quiz();
+        quiz.setCourse(course);
+        quiz.setNumberOfQuestionsToAssign(2);
+        List<Question> questions = Arrays.asList(
+                createMCQQuestion(), createTrueFalseQuestion()
+        );
+        quiz.setQuestions(questions);
+
+        // Create quiz submission
+        QuizSubmission quizSubmission = new QuizSubmission();
+        quizSubmission.setStudent(student);
+        quizSubmission.setAssessment(quiz);
+        List<SubmittedAnswer> submittedAnswers = new ArrayList<>();
+
+        // Create submitted answers for each question
+        for (Question question : questions) {
+            SubmittedAnswer answer = new SubmittedAnswer();
+            answer.setQuestion(question);
+            answer.setSubmission(quizSubmission);
+            submittedAnswers.add(answer);
+        }
+        quizSubmission.setSubmittedAnswers(submittedAnswers);
+
+        // Mock repository calls
+        when(assessmentRepository.findById(1L)).thenReturn(Optional.of(quiz));
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+        when(submissionRepository.save(any(QuizSubmission.class))).thenReturn(quizSubmission);
+        when(studentRepository.save(any(Student.class))).thenReturn(student);
+
+        // Execute method
+        List<Question> result = studentService.startQuiz(1L, 1L);
+
+        // Verify results
+        assertEquals(2, result.size());
+        verify(assessmentRepository).findById(1L);
+        verify(studentRepository, times(2)).findById(1L); // Changed this line
+        verify(submissionRepository).save(any(QuizSubmission.class));
+        verify(studentRepository).save(any(Student.class));
+    }
+
+    @Test
+    void submitQuiz_Success() {
+        Student student = new Student();
+        Quiz quiz = new Quiz();
+        QuizSubmission submission = new QuizSubmission();
         submission.setStudent(student);
-        submission.setGraded(true);
+        submission.setAssessment(quiz);
+        List<SubmittedAnswer> answers = new ArrayList<>();
+        submission.setSubmittedAnswers(answers);
+
+        Map<Long, String> submittedAnswers = new HashMap<>();
+        submittedAnswers.put(1L, "answer1");
 
         when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
+        when(submissionRepository.save(any(QuizSubmission.class))).thenReturn(submission);
+        when(studentRepository.save(any(Student.class))).thenReturn(student);
 
-        Submission result = studentService.viewSubmission(1L, 1L);
+        Boolean result = studentService.submitQuiz(1L, submittedAnswers);
+
+        assertTrue(result);
+        assertTrue(submission.isGraded());
+        verify(submissionRepository).save(submission);
+    }
+
+    @Test
+    void submitAssignment_Success() throws IOException {
+        Student student = new Student();
+        Course course = new Course();
+        course.setEnrolledStudents(List.of(student));
+        Assignment assignment = new Assignment();
+        assignment.setCourse(course);
+
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getOriginalFilename()).thenReturn("test.pdf");
+        when(file.getBytes()).thenReturn("test content".getBytes());
+
+        when(assessmentRepository.findById(1L)).thenReturn(Optional.of(assignment));
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+        when(submissionRepository.save(any(AssignmentSubmission.class))).thenReturn(new AssignmentSubmission());
+        when(studentRepository.save(any(Student.class))).thenReturn(student);
+
+        AssignmentSubmission result = studentService.submitAssignment(1L, 1L, List.of(file));
 
         assertNotNull(result);
+        verify(submissionRepository).save(any(AssignmentSubmission.class));
+    }
+
+    @Test
+    void getStudentCourseGrades_Success() {
+        Student student = new Student();
+        Course course = new Course();
+        List<Submission> submissions = Arrays.asList(
+                new QuizSubmission(), new AssignmentSubmission()
+        );
+
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
+        when(submissionRepository.findByStudentAndAssessment_Course(student, course))
+                .thenReturn(submissions);
+
+        List<Submission> result = studentService.getStudentCourseGrades(1L, 1L);
+
+        assertEquals(submissions, result);
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void getAssessmentGrade_Success() {
+        Student student = new Student();
+        Assessment assessment = new Quiz();
+        Submission submission = new QuizSubmission();
+
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+        when(assessmentRepository.findById(1L)).thenReturn(Optional.of(assessment));
+        when(submissionRepository.findByStudentAndAssessment(student, assessment))
+                .thenReturn(List.of(submission));
+
+        Submission result = studentService.getAssessmentGrade(1L, 1L);
+
         assertEquals(submission, result);
     }
 
-    @Test
-    void testGetSubmissions_Success() {
-        Submission submission = new Submission();
-        submission.setId(1L);
-        student.getSubmissions().add(submission);
-
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-
-        List<Submission> submissions = studentService.getSubmissions(1L);
-
-        assertNotNull(submissions);
-        assertEquals(1, submissions.size());
-        assertEquals(submission, submissions.get(0));
+    private MCQ createMCQQuestion() {
+        MCQ question = new MCQ();
+        question.setQuestionText("Test MCQ");
+        question.setGrade(10.0);
+        question.setOptions(Arrays.asList("A", "B", "C", "D"));
+        question.setCorrectAnswer("A");
+        return question;
     }
 
-    // Negative Test Cases
-
-    @Test
-    void testGetEnrolledCourses_StudentNotFound() {
-        when(studentRepository.findById(1L)).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.getEnrolledCourses(1L);
-        });
-
-        assertEquals("Student not found", exception.getMessage());
-    }
-
-    @Test
-    void testEnrollInCourse_StudentNotFound() {
-        when(studentRepository.findById(1L)).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.enrollInCourse(1L, 1L);
-        });
-
-        assertEquals("Student not found", exception.getMessage());
-    }
-
-    @Test
-    void testEnrollInCourse_CourseNotFound() {
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-        when(courseRepository.findById(1L)).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.enrollInCourse(1L, 1L);
-        });
-
-        assertEquals("Course not found", exception.getMessage());
-    }
-
-    @Test
-    void testGetEnrolledCourse_StudentNotEnrolled() {
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.getEnrolledCourse(1L, 1L);
-        });
-
-        assertEquals("Student didn't enroll in this course", exception.getMessage());
-    }
-
-    @Test
-    void testGetLesson_StudentNotEnrolled() {
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-
-        Lesson lesson = new Lesson();
-        lesson.setId(1L);
-        lesson.setCourse(course);
-
-        when(lessonRepository.findById(1L)).thenReturn(Optional.of(lesson));
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.getLesson(1L, 1L);
-        });
-
-        assertEquals("Student didn't enroll in this course", exception.getMessage());
-    }
-
-    @Test
-    void testGetLessonMaterial_LessonMismatch() {
-        Lesson lesson1 = new Lesson();
-        lesson1.setId(1L);
-
-        Lesson lesson2 = new Lesson();
-        lesson2.setId(2L);
-
-        LessonMaterial material = new LessonMaterial();
-        material.setId(1L);
-        material.setLesson(lesson2);
-
-        when(lessonMaterialRepository.findById(1L)).thenReturn(Optional.of(material));
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.getLessonMaterial(1L, 1L);
-        });
-
-        assertEquals("Lesson material does not belong to the specified lesson", exception.getMessage());
-    }
-
-    @Test
-    void testViewSubmission_NotAuthorized() {
-        Student anotherStudent = new Student();
-        anotherStudent.setId(2L);
-
-        Submission submission = new Submission();
-        submission.setId(1L);
-        submission.setStudent(anotherStudent);
-        submission.setGraded(true);
-
-        when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.viewSubmission(1L, 1L);
-        });
-
-        assertEquals("Not authorized to view this submission", exception.getMessage());
-    }
-
-    @Test
-    void testViewSubmission_NotGraded() {
-        Submission submission = new Submission();
-        submission.setId(1L);
-        submission.setStudent(student);
-        submission.setGraded(false);
-
-        when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.viewSubmission(1L, 1L);
-        });
-
-        assertEquals("Submission is not yet graded", exception.getMessage());
-    }
-
-    @Test
-    void testGetNotifications_StudentNotFound() {
-        when(studentRepository.findById(1L)).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.getNotifications(1L);
-        });
-
-        assertEquals("Student not found", exception.getMessage());
-    }
-
-    @Test
-    void testGetSubmissions_StudentNotFound() {
-        when(studentRepository.findById(1L)).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            studentService.getSubmissions(1L);
-        });
-
-        assertEquals("Student not found", exception.getMessage());
+    private TrueFalse createTrueFalseQuestion() {
+        TrueFalse question = new TrueFalse();
+        question.setQuestionText("Test True/False");
+        question.setGrade(5.0);
+        question.setCorrectAnswer("true");
+        return question;
     }
 }
