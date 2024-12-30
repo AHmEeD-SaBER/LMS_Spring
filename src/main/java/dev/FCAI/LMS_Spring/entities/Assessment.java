@@ -24,7 +24,7 @@ import java.util.List;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "assessment_type")
-public abstract class Assessment {
+public  class Assessment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "assessment_id")

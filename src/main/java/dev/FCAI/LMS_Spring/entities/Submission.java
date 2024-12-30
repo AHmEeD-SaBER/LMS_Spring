@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "submission_type")
-public abstract class Submission {
+public class Submission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonView(Views.Summary.class)

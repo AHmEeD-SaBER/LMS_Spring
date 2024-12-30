@@ -3,6 +3,9 @@ package dev.FCAI.LMS_Spring.controllers;
 import com.fasterxml.jackson.annotation.JsonView;
 import dev.FCAI.LMS_Spring.Views;
 import dev.FCAI.LMS_Spring.entities.*;
+import dev.FCAI.LMS_Spring.repository.CourseRepository;
+import dev.FCAI.LMS_Spring.repository.InstructorRepository;
+import dev.FCAI.LMS_Spring.repository.StudentRepository;
 import dev.FCAI.LMS_Spring.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +23,18 @@ public class StudentController {
 
     @Autowired
     private StudentService studentService;
+
+    @Autowired
+    private NotificationsService notificationService;
+
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private InstructorRepository instructorRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
 
     @GetMapping("/")
     public String greet() {
@@ -61,7 +76,11 @@ public class StudentController {
     @PostMapping("enroll/{studentId}/{courseId}/")
     @JsonView(Views.Summary.class)
     public ResponseEntity<String> enrollInCourse(@PathVariable Long courseId, @PathVariable Long studentId) {
-        studentService.enrollInCourse(courseId, studentId);
+        studentService.enrollInCourse(courseId, studentId);;
+        Student student = studentRepository.findById(studentId).get();
+        Course course = courseRepository.findById(courseId).get();
+        notificationService.notifyStudent(student, "You have been enrolled in the course " + course.getTitle());
+        notificationService.notifyInstructor(course.getInstructor(), "Student " + student.getFirstName() + " " + student.getLastName() + " has been enrolled in your course " + course.getTitle());
         return ResponseEntity.ok("Enrolled successfully");
     }
 

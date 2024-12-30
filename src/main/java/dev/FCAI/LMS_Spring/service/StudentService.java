@@ -18,8 +18,6 @@ public class StudentService {
     @Autowired
     private CourseRepository courseRepository;
     @Autowired
-    private NotificationsService notificationService;
-    @Autowired
     private SubmissionRepository submissionRepository;
     @Autowired
     private LessonRepository lessonRepository;
@@ -44,10 +42,6 @@ public class StudentService {
         student.getEnrolledCourses().add(course);
         course.getEnrolledStudents().add(student);
 
-        notificationService.notifyStudent(student,
-                "You have successfully enrolled in course: " + course.getTitle());
-        notificationService.notifyInstructor(course.getInstructor(),
-                "Student " + student.getFirstName() + " " + student.getLastName() + " has enrolled in your course: " + course.getTitle());
 
         studentRepository.save(student);
         courseRepository.save(course);
@@ -87,22 +81,6 @@ public class StudentService {
         return student.getNotifications();
     }
 
-//    public Submission viewSubmission(Long submissionId, Long studentId) {
-//        Submission submission = submissionRepository.findById(submissionId)
-//                .orElseThrow(() -> new RuntimeException("Submission not found"));
-//        if (!submission.getStudent().getId().equals(studentId)) {
-//            throw new RuntimeException("Not authorized to view this submission");
-//        }
-//        if (!submission.isGraded()) {
-//            throw new RuntimeException("Submission is not yet graded");
-//        }
-//        return submission;
-//    }
-//
-//    public List<Submission> getSubmissions(Long studentId){
-//        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
-//        return student.getSubmissions();
-//    }
 
     public List<Question> startQuiz(Long quizId, Long studentId) {
         Quiz quiz = (Quiz) assessmentRepository.findById(quizId)
@@ -169,8 +147,6 @@ public class StudentService {
         submission.setGraded(true);
         submissionRepository.save(submission);
         Student student = submission.getStudent();
-        notificationService.notifyStudent(student,
-                "Your quiz submission for " + submission.getAssessment().getTitle() + " has been graded. Total score: " + totalScore);
         student.getSubmissions().add(submission);
         studentRepository.save(student);
 
