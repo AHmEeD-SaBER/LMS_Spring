@@ -1,5 +1,4 @@
 package dev.FCAI.LMS_Spring.entities;
-
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -10,7 +9,6 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
