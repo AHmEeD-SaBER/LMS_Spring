@@ -1,5 +1,4 @@
 package dev.FCAI.LMS_Spring.entities;
-
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -9,7 +8,6 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "id"
@@ -47,5 +45,4 @@ public class Lesson {
     )
     @JsonView(Views.Detailed.class)
     private List<Student> attendedStudents = new ArrayList<>();
-
 }

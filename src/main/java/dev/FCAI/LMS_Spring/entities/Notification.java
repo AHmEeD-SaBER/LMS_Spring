@@ -1,5 +1,4 @@
 package dev.FCAI.LMS_Spring.entities;
-
 import com.fasterxml.jackson.annotation.*;
 import dev.FCAI.LMS_Spring.Views;
 import jakarta.persistence.*;
@@ -8,7 +7,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 @Getter
 @Setter
 @Entity
@@ -24,19 +22,15 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonView(Views.Summary.class)
     private Long id;
-
     @Column(nullable = false)
     @JsonView(Views.Summary.class)
     private String message;
-
     @Column(nullable = false)
     @JsonView(Views.Summary.class)
     private LocalDateTime createdAt;
-
     @Column(nullable = false)
     @JsonView(Views.Summary.class)
     private boolean isRead;
-
     @ManyToMany
     @JoinTable(
             name = "student_notification",
@@ -45,7 +39,6 @@ public class Notification {
     )
     @JsonView(Views.Detailed.class)
     private List<Student> students = new ArrayList<>();
-
     @ManyToMany
     @JoinTable(
             name = "instructor_notification",
