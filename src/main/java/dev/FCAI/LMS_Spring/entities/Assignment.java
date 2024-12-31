@@ -17,4 +17,5 @@ public class Assignment extends Assessment {
     @JsonView(Views.Summary.class)
     private String submissionPath;
 
+
 }

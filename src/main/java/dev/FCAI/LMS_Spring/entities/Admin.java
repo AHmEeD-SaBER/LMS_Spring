@@ -27,4 +27,5 @@ public class Admin extends User {
     @OneToMany(mappedBy = "admin", orphanRemoval = true, cascade = CascadeType.ALL)
     @JsonView(Views.Detailed.class)
     private List<User> users = new ArrayList<>();
+
 }
